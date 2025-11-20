@@ -19,9 +19,9 @@ const footerLinks = {
 }
 
 const socialLinks = [
-  { icon: 'mdi-twitter', url: '#', color: '#06b6d4' },
-  { icon: 'mdi-instagram', url: '#', color: '#a855f7' },
-  { icon: 'mdi-facebook', url: '#', color: '#f43f5e' }
+  { icon: 'mdi-twitter', url: '#' },
+  { icon: 'mdi-instagram', url: '#' },
+  { icon: 'mdi-facebook', url: '#' }
 ]
 </script>
 
@@ -35,22 +35,20 @@ const socialLinks = [
           <v-col cols="12" md="4">
             <div class="footer-brand mb-6">
               <div class="d-flex align-center mb-4">
-                <v-avatar 
-                  size="48" 
-                  class="brand-avatar"
-                  style="background: linear-gradient(135deg, #06b6d4 0%, #a855f7 100%); box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);"
+                <div 
+                  style="width: 48px; height: 48px; background: black; border: 2px solid black; display: flex; align-items: center; justify-content: center;"
                 >
                   <v-icon color="white" size="28">mdi-cube-outline</v-icon>
-                </v-avatar>
+                </div>
                 <div class="ml-3">
-                  <div class="text-h5 font-weight-bold text-gradient" style="font-family: var(--font-display);">
-                    Mujassam
+                  <div class="text-h5 font-weight-bold" style="font-family: var(--font-display); color: black; text-transform: uppercase; letter-spacing: 1px;">
+                    MUJASSAM
                   </div>
-                  <div class="text-caption" style="color: #64748b; margin-top: -4px;">3D Printing Excellence</div>
+                  <div class="text-caption" style="color: #606060; margin-top: -4px; text-transform: uppercase; letter-spacing: 1px;">3D PRINTING</div>
                 </div>
               </div>
-              <p class="text-body-2 mb-5" style="color: #64748b; line-height: 1.6;">
-                Transforming ideas into reality with precision 3D printing. Your trusted partner for custom designs and rapid prototyping.
+              <p class="text-body-2 mb-5" style="color: #606060; line-height: 1.6;">
+                Precision 3D printing for custom designs and rapid prototyping.
               </p>
               
               <!-- Social links -->
@@ -59,8 +57,8 @@ const socialLinks = [
                   v-for="social in socialLinks"
                   :key="social.icon"
                   :href="social.url"
-                  class="social-link glass"
-                  :style="{ '--social-color': social.color }"
+                  class="social-link"
+                  style="border: 2px solid black; background: white; color: black;"
                 >
                   <v-icon size="20">{{ social.icon }}</v-icon>
                 </a>
@@ -73,7 +71,7 @@ const socialLinks = [
             <v-row>
               <!-- Company links -->
               <v-col cols="6" sm="4">
-                <h3 class="footer-heading mb-4">Company</h3>
+                <h3 class="footer-heading mb-4" style="color: black; text-transform: uppercase; letter-spacing: 1px;">COMPANY</h3>
                 <ul class="footer-links">
                   <li v-for="link in footerLinks.company" :key="link.name">
                     <router-link :to="link.path" class="footer-link">
@@ -85,7 +83,7 @@ const socialLinks = [
 
               <!-- Support links -->
               <v-col cols="6" sm="4">
-                <h3 class="footer-heading mb-4">Support</h3>
+                <h3 class="footer-heading mb-4" style="color: black; text-transform: uppercase; letter-spacing: 1px;">SUPPORT</h3>
                 <ul class="footer-links">
                   <li v-for="link in footerLinks.support" :key="link.name">
                     <router-link :to="link.path" class="footer-link">
@@ -97,7 +95,7 @@ const socialLinks = [
 
               <!-- Legal links -->
               <v-col cols="12" sm="4">
-                <h3 class="footer-heading mb-4">Legal</h3>
+                <h3 class="footer-heading mb-4" style="color: black; text-transform: uppercase; letter-spacing: 1px;">LEGAL</h3>
                 <ul class="footer-links">
                   <li v-for="link in footerLinks.legal" :key="link.name">
                     <router-link :to="link.path" class="footer-link">
@@ -113,22 +111,19 @@ const socialLinks = [
     </div>
 
     <!-- Bottom bar -->
-    <div class="footer-bottom">
+    <div class="footer-bottom" style="border-top: 2px solid black;">
       <v-container>
-        <v-divider class="mb-6" style="border-color: rgba(203, 213, 225, 0.2);"></v-divider>
         <div class="d-flex flex-column flex-sm-row align-center justify-space-between ga-4">
-          <div class="text-body-2" style="color: #64748b;">
-            &copy; {{ currentYear }} <span class="font-weight-bold text-gradient-primary">Mujassam</span>. All rights reserved.
+          <div class="text-body-2" style="color: black; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+            &copy; {{ currentYear }} <span class="font-weight-bold">MUJASSAM</span>. ALL RIGHTS RESERVED.
           </div>
           <div class="d-flex align-center ga-2">
-            <v-chip size="small" class="glass" style="border: 1px solid rgba(6, 182, 212, 0.2);">
-              <v-icon start size="14" style="color: #06b6d4;">mdi-check-decagram</v-icon>
-              <span style="color: #0f172a; font-weight: 600;">ISO Certified</span>
-            </v-chip>
-            <v-chip size="small" class="glass" style="border: 1px solid rgba(16, 185, 129, 0.2);">
-              <v-icon start size="14" style="color: #10b981;">mdi-leaf</v-icon>
-              <span style="color: #0f172a; font-weight: 600;">Eco-Friendly</span>
-            </v-chip>
+            <div class="pa-2 px-3" style="border: 2px solid black; background: white;">
+              <span style="color: black; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.75rem;">ISO CERTIFIED</span>
+            </div>
+            <div class="pa-2 px-3" style="border: 2px solid black; background: white;">
+              <span style="color: black; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.75rem;">ECO-FRIENDLY</span>
+            </div>
           </div>
         </div>
       </v-container>
@@ -139,31 +134,13 @@ const socialLinks = [
 <style scoped>
 .modern-footer {
   position: relative;
-  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-  margin-top: 120px;
-}
-
-.modern-footer::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.3) 50%, transparent);
+  background: white;
+  margin-top: 80px;
 }
 
 .footer-main {
   position: relative;
-}
-
-.brand-avatar {
-  transition: all 0.3s ease;
-}
-
-.footer-brand:hover .brand-avatar {
-  transform: rotate(10deg) scale(1.05);
-  box-shadow: 0 8px 20px rgba(6, 182, 212, 0.4) !important;
+  padding: 60px 0;
 }
 
 .social-link {
@@ -172,27 +149,19 @@ const socialLinks = [
   justify-content: center;
   width: 40px;
   height: 40px;
-  border-radius: 12px;
-  border: 1px solid rgba(203, 213, 225, 0.3);
-  color: #64748b;
   text-decoration: none;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .social-link:hover {
-  background: var(--social-color);
-  border-color: var(--social-color);
-  color: white;
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: 4px 4px 0 black;
+  transform: translate(-2px, -2px);
 }
 
 .footer-heading {
   font-size: 0.938rem;
   font-weight: 700;
   font-family: var(--font-display);
-  color: #0f172a;
-  letter-spacing: -0.01em;
 }
 
 .footer-links {
@@ -206,31 +175,24 @@ const socialLinks = [
 }
 
 .footer-link {
-  color: #64748b;
+  color: #606060;
   text-decoration: none;
   font-size: 0.875rem;
   font-weight: 500;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease;
   display: inline-block;
 }
 
 .footer-link:hover {
-  color: #06b6d4;
-  transform: translateX(4px);
+  color: black;
 }
 
 .footer-bottom {
   padding: 1.5rem 0;
-  background: rgba(248, 250, 252, 0.5);
-}
-</style>
-
-<style scoped>
-.footer-link {
-  transition: color 0.2s ease;
+  background: white;
 }
 
-.footer-link:hover {
-  color: rgb(var(--v-theme-primary)) !important;
+.section-padding {
+  padding: 60px 0;
 }
 </style>

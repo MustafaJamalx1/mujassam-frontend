@@ -41,15 +41,14 @@ onMounted(() => {
         <div class="d-flex flex-column flex-md-row align-md-center justify-space-between ga-4">
           <div>
             <div class="mb-3">
-              <div class="section-badge glass d-inline-flex align-center px-4 py-2 rounded-pill">
-                <v-icon size="18" class="mr-2" style="color: #06b6d4;">mdi-cube-outline</v-icon>
-                <span class="text-body-2 font-weight-bold" style="color: #0f172a;">Shop</span>
+              <div class="d-inline-flex align-center px-4 py-2" style="border: 2px solid black; background: white;">
+                <span class="text-body-2 font-weight-bold" style="color: black; text-transform: uppercase; letter-spacing: 1px;">SHOP</span>
               </div>
             </div>
-            <h1 class="text-h3 text-md-h2 font-weight-bold mb-2" style="font-family: var(--font-display); letter-spacing: -0.02em; color: #0f172a;">
-              3D Printed <span class="text-gradient">Collection</span>
+            <h1 class="text-h3 text-md-h2 font-weight-bold mb-2" style="font-family: var(--font-display); letter-spacing: -0.02em; color: black; text-transform: uppercase;">
+              3D PRINTED COLLECTION
             </h1>
-            <p class="text-body-1" style="color: #64748b;">Discover premium 3D printed designs crafted with precision</p>
+            <p class="text-body-1" style="color: #404040;">Premium 3D printed designs crafted with precision</p>
           </div>
           
           <div class="d-flex align-center ga-2 ga-md-3 flex-wrap">
@@ -58,30 +57,28 @@ onMounted(() => {
               <v-text-field
                 v-model="searchQuery"
                 prepend-inner-icon="mdi-magnify"
-                placeholder="Search products..."
-                variant="solo"
+                placeholder="SEARCH"
+                variant="outlined"
                 density="comfortable"
                 hide-details
-                rounded="xl"
                 single-line
-                class="search-field glass-card"
-                style="min-width: 220px; max-width: 300px;"
+                style="min-width: 220px; max-width: 300px; border-radius: 0;"
+                :style="{ '--v-field-border-color': 'black', '--v-field-border-width': '2px' }"
               ></v-text-field>
             </div>
 
             <!-- View toggle -->
-            <div class="view-toggle glass-card pa-1 rounded-xl">
+            <div class="pa-1" style="border: 2px solid black; background: white;">
               <v-btn-toggle
                 v-model="viewMode"
                 mandatory
                 density="comfortable"
-                color="primary"
-                class="view-toggle-group"
+                color="black"
               >
-                <v-btn value="grid" icon size="small" rounded="lg">
+                <v-btn value="grid" icon size="small" style="border-radius: 0;">
                   <v-icon size="20">mdi-view-grid</v-icon>
                 </v-btn>
-                <v-btn value="list" icon size="small" rounded="lg">
+                <v-btn value="list" icon size="small" style="border-radius: 0;">
                   <v-icon size="20">mdi-view-list</v-icon>
                 </v-btn>
               </v-btn-toggle>
@@ -89,11 +86,10 @@ onMounted(() => {
 
             <!-- Filter toggle (mobile) -->
             <v-btn
-              class="d-md-none glass-card"
+              class="d-md-none"
               @click="drawer = true"
               icon
-              rounded="xl"
-              style="border: 2px solid #06b6d4; color: #0891b2;"
+              style="border-radius: 0; border: 2px solid black; color: black;"
             >
               <v-icon>mdi-filter-variant</v-icon>
             </v-btn>
@@ -104,20 +100,19 @@ onMounted(() => {
       <v-row>
         <!-- Filters Sidebar (Desktop) -->
         <v-col cols="12" md="3" class="d-none d-md-block">
-        <div class="filters-sidebar glass-card pa-6 rounded-xl sticky-filter">
+        <div class="pa-6 sticky-filter" style="border: 3px solid black; background: white; box-shadow: 6px 6px 0 black;">
           <div class="d-flex align-center justify-space-between mb-5">
-            <h3 class="text-h6 font-weight-bold" style="font-family: var(--font-display); color: #0f172a;">
-              <v-icon start size="22" style="color: #06b6d4;">mdi-filter-variant</v-icon>
-              Filters
+            <h3 class="text-h6 font-weight-bold" style="font-family: var(--font-display); color: black; text-transform: uppercase; letter-spacing: 1px;">
+              FILTERS
             </h3>
           </div>
           
-          <v-divider class="mb-5" style="border-color: rgba(203, 213, 225, 0.3);"></v-divider>
+          <v-divider class="mb-5" style="border-color: black; border-width: 2px;"></v-divider>
           
           <!-- Categories -->
           <div class="filter-section mb-6">
-            <p class="text-body-2 font-weight-bold mb-4" style="color: #475569; letter-spacing: 0.5px; text-transform: uppercase;">
-              Category
+            <p class="text-body-2 font-weight-bold mb-4" style="color: black; letter-spacing: 1px; text-transform: uppercase;">
+              CATEGORY
             </p>
             <div class="filter-options">
               <div 
@@ -131,8 +126,7 @@ onMounted(() => {
                   :value="category"
                   density="comfortable"
                   hide-details
-                  color="#06b6d4"
-                  class="custom-checkbox"
+                  color="black"
                 ></v-checkbox>
               </div>
             </div>
@@ -140,8 +134,8 @@ onMounted(() => {
 
           <!-- Price Range -->
           <div class="filter-section mb-6">
-            <p class="text-body-2 font-weight-bold mb-5" style="color: #475569; letter-spacing: 0.5px; text-transform: uppercase;">
-              Price Range
+            <p class="text-body-2 font-weight-bold mb-5" style="color: black; letter-spacing: 1px; text-transform: uppercase;">
+              PRICE RANGE
             </p>
             <v-range-slider
               v-model="priceRange"
@@ -149,33 +143,30 @@ onMounted(() => {
               :max="100"
               :step="5"
               thumb-label="always"
-              color="#06b6d4"
-              track-color="#e2e8f0"
+              color="black"
+              track-color="#d0d0d0"
               hide-details
-              class="mt-6 custom-slider"
+              class="mt-6"
             ></v-range-slider>
             <div class="d-flex justify-space-between mt-4">
-              <div class="price-badge glass pa-3 rounded-lg">
-                <span class="text-caption font-weight-medium" style="color: #64748b;">Min</span>
-                <div class="text-body-1 font-weight-bold text-gradient-primary">${{ priceRange[0] }}</div>
+              <div class="pa-3" style="border: 2px solid black; background: white;">
+                <span class="text-caption font-weight-bold" style="color: black; text-transform: uppercase;">MIN</span>
+                <div class="text-body-1 font-weight-bold" style="color: black;">${{ priceRange[0] }}</div>
               </div>
-              <div class="price-badge glass pa-3 rounded-lg">
-                <span class="text-caption font-weight-medium" style="color: #64748b;">Max</span>
-                <div class="text-body-1 font-weight-bold text-gradient-primary">${{ priceRange[1] }}</div>
+              <div class="pa-3" style="border: 2px solid black; background: white;">
+                <span class="text-caption font-weight-bold" style="color: black; text-transform: uppercase;">MAX</span>
+                <div class="text-body-1 font-weight-bold" style="color: black;">${{ priceRange[1] }}</div>
               </div>
             </div>
           </div>
 
           <v-btn
             block
-            rounded="xl"
             size="large"
-            class="clear-btn"
-            style="background: linear-gradient(135deg, #f43f5e15, #a855f715); color: #f43f5e; font-weight: 700; text-transform: none; border: 2px solid #f43f5e20;"
+            style="border-radius: 0; background: white; color: black; font-weight: 700; text-transform: uppercase; border: 2px solid black;"
             @click="clearFilters"
           >
-            <v-icon start>mdi-refresh</v-icon>
-            Clear Filters
+            CLEAR FILTERS
           </v-btn>
         </div>
       </v-col>
@@ -183,18 +174,13 @@ onMounted(() => {
       <!-- Products Grid -->
       <v-col cols="12" md="9">
         <!-- Results count -->
-        <div class="results-bar glass pa-4 rounded-xl mb-5 d-flex align-center justify-space-between">
-          <p class="text-body-2 mb-0" style="color: #64748b;">
-            Showing <span class="font-weight-bold text-gradient-primary">{{ placeholderProducts.length }}</span> products
+        <div class="pa-4 mb-5 d-flex align-center justify-space-between" style="border: 2px solid black; background: white;">
+          <p class="text-body-2 mb-0" style="color: black; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+            SHOWING <span class="font-weight-bold">{{ placeholderProducts.length }}</span> PRODUCTS
           </p>
-          <v-chip 
-            size="small" 
-            class="glass"
-            style="border: 1px solid rgba(6, 182, 212, 0.2);"
-          >
-            <v-icon start size="16" style="color: #06b6d4;">mdi-check-circle</v-icon>
-            <span style="color: #0f172a; font-weight: 600;">In Stock</span>
-          </v-chip>
+          <div class="pa-2 px-3" style="border: 2px solid black; background: white;">
+            <span style="color: black; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.75rem;">IN STOCK</span>
+          </div>
         </div>
 
         <!-- Grid View -->
@@ -210,68 +196,48 @@ onMounted(() => {
               :to="`/products/${product.id}`"
               class="text-decoration-none"
             >
-              <div class="product-card glass-card h-100">
-                <div class="product-image-wrapper position-relative">
-                  <div class="product-image-container">
-                    <v-img
-                      :src="product.image"
-                      height="240"
-                      cover
-                      class="product-image"
-                    >
-                      <template v-slot:placeholder>
-                        <div class="d-flex align-center justify-center fill-height gradient-mesh">
-                          <v-icon size="64" style="color: #06b6d4; opacity: 0.3;">mdi-cube-outline</v-icon>
-                        </div>
-                      </template>
-                    </v-img>
-                  </div>
+              <div class="h-100" style="border: 3px solid black; background: white; box-shadow: 6px 6px 0 black;">
+                <div class="position-relative">
+                  <v-img
+                    :src="product.image"
+                    height="240"
+                    cover
+                  >
+                    <template v-slot:placeholder>
+                      <div class="d-flex align-center justify-center fill-height" style="background: #f0f0f0;">
+                        <v-icon size="64" style="color: black; opacity: 0.2;">mdi-cube-outline</v-icon>
+                      </div>
+                    </template>
+                  </v-img>
                   
                   <!-- Category badge -->
-                  <v-chip
-                    class="category-badge glass"
-                    size="small"
-                    style="position: absolute; top: 12px; left: 12px; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.3);"
+                  <div
+                    class="pa-2 px-3"
+                    style="position: absolute; top: 12px; left: 12px; background: white; border: 2px solid black; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.688rem;"
                   >
                     {{ product.category }}
-                  </v-chip>
-                  
-                  <!-- Quick actions -->
-                  <div class="quick-actions">
-                    <v-btn
-                      icon
-                      size="small"
-                      class="glass"
-                      style="border: 1px solid rgba(255, 255, 255, 0.3);"
-                    >
-                      <v-icon size="18" style="color: #06b6d4;">mdi-heart-outline</v-icon>
-                    </v-btn>
                   </div>
                 </div>
                 
-                <div class="product-content pa-5">
-                  <h3 class="text-subtitle-1 font-weight-bold mb-2" style="color: #0f172a; font-family: var(--font-display); line-height: 1.3;">
+                <div class="pa-5" style="border-top: 3px solid black;">
+                  <h3 class="text-subtitle-1 font-weight-bold mb-2" style="color: black; font-family: var(--font-display); line-height: 1.3; text-transform: uppercase; letter-spacing: 1px;">
                     {{ product.name }}
                   </h3>
                   
                   <div class="d-flex align-center justify-space-between mb-4">
-                    <div class="text-h6 font-weight-bold text-gradient-primary">
+                    <div class="text-h6 font-weight-bold" style="color: black;">
                       ${{ product.price }}
                     </div>
-                    <v-chip size="x-small" class="glass" style="border: 1px solid rgba(16, 185, 129, 0.2);">
-                      <v-icon start size="12" style="color: #10b981;">mdi-check-circle</v-icon>
-                      <span style="color: #10b981; font-weight: 700;">Ready</span>
-                    </v-chip>
+                    <div class="pa-1 px-2" style="border: 2px solid black; background: white;">
+                      <span style="color: black; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.625rem;">READY</span>
+                    </div>
                   </div>
                   
                   <v-btn
                     block
-                    rounded="xl"
-                    class="add-to-cart-btn"
-                    style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); color: white; font-weight: 700; text-transform: none; box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);"
+                    style="border-radius: 0; background: black; color: white; font-weight: 700; text-transform: uppercase; border: 2px solid black;"
                   >
-                    <v-icon start size="20">mdi-cart-plus</v-icon>
-                    Add to Cart
+                    ADD TO CART
                   </v-btn>
                 </div>
               </div>
