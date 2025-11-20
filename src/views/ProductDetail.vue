@@ -2,8 +2,6 @@
 import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
-import Button from '@/components/common/Button.vue'
-import Card from '@/components/common/Card.vue'
 
 const route = useRoute()
 const cartStore = useCartStore()
@@ -51,111 +49,219 @@ function decrementQuantity() {
 </script>
 
 <template>
-  <div class="bg-gray-50 min-h-screen py-8">
-    <div class="container-app">
-      <!-- Breadcrumb -->
-      <nav class="mb-6 text-sm">
-        <RouterLink to="/products" class="text-gray-500 hover:text-primary-600">
-          Products
-        </RouterLink>
-        <span class="mx-2 text-gray-400">/</span>
-        <span class="text-gray-900">{{ product.name }}</span>
-      </nav>
+  <v-container class="py-6 py-md-10">
+    <!-- Breadcrumb -->
+    <v-breadcrumbs class="px-0 mb-4">
+      <v-breadcrumbs-item to="/products" class="text-primary">
+        <v-icon start size="16">mdi-arrow-left</v-icon>
+        Products
+      </v-breadcrumbs-item>
+      <v-breadcrumbs-divider>/</v-breadcrumbs-divider>
+      <v-breadcrumbs-item disabled>{{ product.name }}</v-breadcrumbs-item>
+    </v-breadcrumbs>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- Image Gallery -->
-        <div>
-          <Card padding="none">
-            <div class="aspect-square bg-gray-200 flex items-center justify-center">
-              <span class="text-gray-400">3D Preview</span>
-            </div>
-          </Card>
-          <!-- Thumbnails -->
-          <div class="grid grid-cols-4 gap-2 mt-4">
-            <div v-for="i in 4" :key="i" class="aspect-square bg-gray-200 rounded-lg cursor-pointer hover:ring-2 ring-primary-500" />
-          </div>
-        </div>
-
-        <!-- Product Info -->
-        <div>
-          <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ product.name }}</h1>
-          <p class="text-2xl font-semibold text-primary-600 mb-4">${{ product.price }}</p>
-          <p class="text-gray-600 mb-6">{{ product.description }}</p>
-
-          <!-- Specifications -->
-          <Card padding="sm" class="mb-6">
-            <h3 class="font-semibold mb-3">Specifications</h3>
-            <div class="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span class="text-gray-500">Dimensions</span>
-                <p class="font-medium">{{ product.dimensions.width }} x {{ product.dimensions.height }} x {{ product.dimensions.depth }} cm</p>
+    <v-row>
+      <!-- Image Gallery -->
+      <v-col cols="12" lg="6">
+        <v-card rounded="xl" elevation="2" class="image-card mb-4">
+          <v-img
+            height="450"
+            class="bg-surface-variant"
+          >
+            <template v-slot:placeholder>
+              <div class="d-flex align-center justify-center fill-height">
+                <v-icon size="80" color="primary" style="opacity: 0.3;">mdi-cube-outline</v-icon>
               </div>
-              <div>
-                <span class="text-gray-500">Print Time</span>
-                <p class="font-medium">{{ product.printTime }}</p>
-              </div>
-            </div>
-          </Card>
-
-          <!-- Material Selection -->
-          <div class="mb-6">
-            <h3 class="font-semibold mb-3">Material</h3>
-            <div class="space-y-2">
-              <label
-                v-for="material in materials"
-                :key="material.name"
-                :class="[
-                  'flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors',
-                  selectedMaterial === material.name
-                    ? 'border-primary-600 bg-primary-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                ]"
+            </template>
+          </v-img>
+        </v-card>
+        <!-- Thumbnails -->
+        <v-row dense>
+          <v-col v-for="i in 4" :key="i" cols="3">
+            <v-card
+              rounded="lg"
+              elevation="1"
+              class="thumbnail-card"
+            >
+              <v-img
+                height="80"
+                class="bg-surface-variant"
               >
-                <div class="flex items-center">
-                  <input
-                    v-model="selectedMaterial"
-                    type="radio"
-                    :value="material.name"
-                    class="text-primary-600 focus:ring-primary-500"
-                  />
-                  <div class="ml-3">
-                    <p class="font-medium">{{ material.name }}</p>
-                    <p class="text-sm text-gray-500">{{ material.description }}</p>
+                <template v-slot:placeholder>
+                  <div class="d-flex align-center justify-center fill-height">
+                    <v-icon size="24" color="primary" style="opacity: 0.3;">mdi-cube-outline</v-icon>
+                  </div>
+                </template>
+              </v-img>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-col>
+
+      <!-- Product Info -->
+      <v-col cols="12" lg="6">
+        <v-chip color="primary" variant="tonal" size="small" class="mb-3">
+          {{ product.category }}
+        </v-chip>
+        <h1 class="text-h4 text-md-h3 font-weight-bold mb-2">{{ product.name }}</h1>
+        <p class="text-h4 font-weight-bold text-primary mb-4">${{ product.price }}</p>
+        <p class="text-body-1 text-medium-emphasis mb-6" style="line-height: 1.7;">
+          {{ product.description }}
+        </p>
+
+        <!-- Specifications -->
+        <v-card rounded="xl" elevation="1" class="spec-card mb-6">
+          <v-card-text class="pa-5">
+            <div class="d-flex align-center mb-4">
+              <v-icon color="primary" class="mr-2">mdi-ruler</v-icon>
+              <h3 class="text-h6 font-weight-bold">Specifications</h3>
+            </div>
+            <v-row dense>
+              <v-col cols="6">
+                <p class="text-body-2 text-medium-emphasis mb-1">Dimensions</p>
+                <p class="text-body-1 font-weight-medium mb-0">
+                  {{ product.dimensions.width }} x {{ product.dimensions.height }} x {{ product.dimensions.depth }} cm
+                </p>
+              </v-col>
+              <v-col cols="6">
+                <p class="text-body-2 text-medium-emphasis mb-1">Print Time</p>
+                <p class="text-body-1 font-weight-medium mb-0">{{ product.printTime }}</p>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+
+        <!-- Material Selection -->
+        <div class="mb-6">
+          <h3 class="text-subtitle-1 font-weight-bold mb-3">
+            <v-icon start size="20" color="primary">mdi-palette-swatch</v-icon>
+            Material
+          </h3>
+          <v-radio-group v-model="selectedMaterial" hide-details>
+            <v-card
+              v-for="material in materials"
+              :key="material.name"
+              :variant="selectedMaterial === material.name ? 'tonal' : 'outlined'"
+              :color="selectedMaterial === material.name ? 'primary' : undefined"
+              rounded="lg"
+              class="mb-2 material-card"
+              @click="selectedMaterial = material.name"
+            >
+              <v-card-text class="d-flex align-center justify-space-between py-3 px-4">
+                <div class="d-flex align-center">
+                  <v-radio :value="material.name" hide-details></v-radio>
+                  <div class="ml-2">
+                    <p class="text-body-1 font-weight-medium mb-0">{{ material.name }}</p>
+                    <p class="text-body-2 text-medium-emphasis mb-0">{{ material.description }}</p>
                   </div>
                 </div>
-                <span v-if="material.price > 0" class="text-sm font-medium text-gray-600">
+                <v-chip
+                  v-if="material.price > 0"
+                  size="small"
+                  variant="tonal"
+                  color="secondary"
+                >
                   +${{ material.price }}
-                </span>
-              </label>
-            </div>
-          </div>
-
-          <!-- Quantity -->
-          <div class="mb-6">
-            <h3 class="font-semibold mb-3">Quantity</h3>
-            <div class="flex items-center gap-3">
-              <button
-                class="w-10 h-10 border border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-50"
-                @click="decrementQuantity"
-              >
-                -
-              </button>
-              <span class="w-12 text-center font-medium">{{ quantity }}</span>
-              <button
-                class="w-10 h-10 border border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-50"
-                @click="incrementQuantity"
-              >
-                +
-              </button>
-            </div>
-          </div>
-
-          <!-- Add to Cart -->
-          <Button variant="primary" size="lg" fullWidth @click="addToCart">
-            Add to Cart
-          </Button>
+                </v-chip>
+              </v-card-text>
+            </v-card>
+          </v-radio-group>
         </div>
-      </div>
-    </div>
-  </div>
+
+        <!-- Quantity -->
+        <div class="mb-6">
+          <h3 class="text-subtitle-1 font-weight-bold mb-3">
+            <v-icon start size="20" color="primary">mdi-numeric</v-icon>
+            Quantity
+          </h3>
+          <div class="d-flex align-center ga-3">
+            <v-btn
+              icon
+              variant="tonal"
+              color="primary"
+              size="small"
+              @click="decrementQuantity"
+            >
+              <v-icon>mdi-minus</v-icon>
+            </v-btn>
+            <span class="text-h5 font-weight-bold" style="min-width: 48px; text-align: center;">
+              {{ quantity }}
+            </span>
+            <v-btn
+              icon
+              variant="tonal"
+              color="primary"
+              size="small"
+              @click="incrementQuantity"
+            >
+              <v-icon>mdi-plus</v-icon>
+            </v-btn>
+          </div>
+        </div>
+
+        <!-- Add to Cart -->
+        <v-btn
+          color="primary"
+          size="x-large"
+          block
+          rounded="lg"
+          elevation="4"
+          class="add-to-cart-btn"
+          @click="addToCart"
+        >
+          <v-icon start size="24">mdi-cart-plus</v-icon>
+          Add to Cart
+        </v-btn>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
+
+<style scoped>
+.image-card {
+  border: 1px solid rgba(var(--v-border-color), 0.08);
+  overflow: hidden;
+}
+
+.thumbnail-card {
+  border: 2px solid rgba(var(--v-border-color), 0.12);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.thumbnail-card:hover {
+  border-color: rgb(var(--v-theme-primary));
+  transform: translateY(-2px);
+}
+
+.spec-card {
+  border: 1px solid rgba(var(--v-border-color), 0.08);
+}
+
+.material-card {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid rgba(var(--v-border-color), 0.12);
+}
+
+.material-card:hover {
+  transform: translateY(-1px);
+}
+
+.add-to-cart-btn {
+  text-transform: none;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  transition: transform 0.2s ease;
+}
+
+.add-to-cart-btn:hover {
+  transform: translateY(-2px);
+}
+
+:deep(.v-btn) {
+  text-transform: none;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+</style>

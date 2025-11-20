@@ -1,9 +1,6 @@
 <script setup>
 import { ref } from 'vue'
 import { useCartStore } from '@/stores/cart'
-import Button from '@/components/common/Button.vue'
-import Card from '@/components/common/Card.vue'
-import Input from '@/components/common/Input.vue'
 
 const cartStore = useCartStore()
 
@@ -31,9 +28,9 @@ const paymentInfo = ref({
 const shippingMethod = ref('standard')
 
 const shippingMethods = [
-  { id: 'standard', name: 'Standard Shipping', price: 5.99, time: '5-7 business days' },
-  { id: 'express', name: 'Express Shipping', price: 12.99, time: '2-3 business days' },
-  { id: 'overnight', name: 'Overnight', price: 24.99, time: '1 business day' }
+  { id: 'standard', name: 'Standard Shipping', price: 5.99, time: '5-7 business days', icon: 'mdi-truck' },
+  { id: 'express', name: 'Express Shipping', price: 12.99, time: '2-3 business days', icon: 'mdi-truck-fast' },
+  { id: 'overnight', name: 'Overnight', price: 24.99, time: '1 business day', icon: 'mdi-lightning-bolt' }
 ]
 
 const selectedShippingPrice = () => {
@@ -67,257 +64,409 @@ async function processPayment() {
 </script>
 
 <template>
-  <div class="bg-gray-50 min-h-screen py-8">
-    <div class="container-app">
-      <h1 class="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
+  <v-container class="py-6 py-md-10">
+    <h1 class="text-h4 text-md-h3 font-weight-bold mb-6 mb-md-8">Checkout</h1>
 
-      <!-- Progress Steps -->
-      <div class="flex items-center justify-center mb-8">
-        <div
-          v-for="step in 3"
-          :key="step"
-          class="flex items-center"
-        >
-          <div
-            :class="[
-              'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium',
-              currentStep >= step
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-200 text-gray-600'
-            ]"
-          >
-            {{ step }}
-          </div>
-          <span
-            :class="[
-              'ml-2 text-sm',
-              currentStep >= step ? 'text-gray-900' : 'text-gray-500'
-            ]"
-          >
-            {{ step === 1 ? 'Shipping' : step === 2 ? 'Payment' : 'Review' }}
-          </span>
-          <div
-            v-if="step < 3"
-            :class="[
-              'w-16 h-0.5 mx-4',
-              currentStep > step ? 'bg-primary-600' : 'bg-gray-200'
-            ]"
-          />
-        </div>
-      </div>
+    <!-- Progress Steps -->
+    <v-stepper
+      v-model="currentStep"
+      alt-labels
+      flat
+      class="mb-8 bg-transparent stepper-custom"
+    >
+      <v-stepper-header>
+        <v-stepper-item
+          :complete="currentStep > 1"
+          :value="1"
+          title="Shipping"
+          icon="mdi-truck"
+        ></v-stepper-item>
+        <v-divider></v-divider>
+        <v-stepper-item
+          :complete="currentStep > 2"
+          :value="2"
+          title="Payment"
+          icon="mdi-credit-card"
+        ></v-stepper-item>
+        <v-divider></v-divider>
+        <v-stepper-item
+          :value="3"
+          title="Review"
+          icon="mdi-check-circle"
+        ></v-stepper-item>
+      </v-stepper-header>
+    </v-stepper>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Form Steps -->
-        <div class="lg:col-span-2">
-          <!-- Step 1: Shipping -->
-          <Card v-if="currentStep === 1" padding="md">
-            <h2 class="font-semibold text-lg mb-4">Shipping Information</h2>
+    <v-row>
+      <!-- Form Steps -->
+      <v-col cols="12" lg="8">
+        <!-- Step 1: Shipping -->
+        <v-card v-if="currentStep === 1" rounded="xl" elevation="0" class="step-card">
+          <v-card-text class="pa-5 pa-md-6">
+            <h2 class="text-h6 font-weight-bold mb-5">
+              <v-icon start color="primary">mdi-map-marker</v-icon>
+              Shipping Information
+            </h2>
 
-            <div class="grid grid-cols-2 gap-4 mb-6">
-              <Input
-                v-model="shippingInfo.firstName"
-                label="First Name"
-                required
-              />
-              <Input
-                v-model="shippingInfo.lastName"
-                label="Last Name"
-                required
-              />
-              <Input
-                v-model="shippingInfo.email"
-                label="Email"
-                type="email"
-                required
-              />
-              <Input
-                v-model="shippingInfo.phone"
-                label="Phone"
-                type="tel"
-              />
-              <div class="col-span-2">
-                <Input
+            <v-row>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="shippingInfo.firstName"
+                  label="First Name"
+                  variant="outlined"
+                  density="comfortable"
+                  rounded="lg"
+                  required
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="shippingInfo.lastName"
+                  label="Last Name"
+                  variant="outlined"
+                  density="comfortable"
+                  rounded="lg"
+                  required
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="shippingInfo.email"
+                  label="Email"
+                  type="email"
+                  variant="outlined"
+                  density="comfortable"
+                  rounded="lg"
+                  required
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="shippingInfo.phone"
+                  label="Phone"
+                  type="tel"
+                  variant="outlined"
+                  density="comfortable"
+                  rounded="lg"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12">
+                <v-text-field
                   v-model="shippingInfo.address"
                   label="Address"
+                  variant="outlined"
+                  density="comfortable"
+                  rounded="lg"
                   required
-                />
-              </div>
-              <Input
-                v-model="shippingInfo.city"
-                label="City"
-                required
-              />
-              <Input
-                v-model="shippingInfo.postalCode"
-                label="Postal Code"
-                required
-              />
-              <div class="col-span-2">
-                <Input
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="shippingInfo.city"
+                  label="City"
+                  variant="outlined"
+                  density="comfortable"
+                  rounded="lg"
+                  required
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="shippingInfo.postalCode"
+                  label="Postal Code"
+                  variant="outlined"
+                  density="comfortable"
+                  rounded="lg"
+                  required
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12">
+                <v-text-field
                   v-model="shippingInfo.country"
                   label="Country"
+                  variant="outlined"
+                  density="comfortable"
+                  rounded="lg"
                   required
-                />
-              </div>
-            </div>
+                ></v-text-field>
+              </v-col>
+            </v-row>
 
-            <h3 class="font-medium mb-3">Shipping Method</h3>
-            <div class="space-y-2 mb-6">
-              <label
+            <h3 class="text-subtitle-1 font-weight-bold mt-6 mb-4">
+              <v-icon start color="primary" size="20">mdi-truck-delivery</v-icon>
+              Shipping Method
+            </h3>
+            <v-radio-group v-model="shippingMethod" hide-details>
+              <v-card
                 v-for="method in shippingMethods"
                 :key="method.id"
-                :class="[
-                  'flex items-center justify-between p-3 border rounded-lg cursor-pointer',
-                  shippingMethod === method.id
-                    ? 'border-primary-600 bg-primary-50'
-                    : 'border-gray-200'
-                ]"
+                :variant="shippingMethod === method.id ? 'tonal' : 'outlined'"
+                :color="shippingMethod === method.id ? 'primary' : undefined"
+                rounded="lg"
+                class="mb-2 shipping-method-card"
+                @click="shippingMethod = method.id"
               >
-                <div class="flex items-center">
-                  <input
-                    v-model="shippingMethod"
-                    type="radio"
-                    :value="method.id"
-                    class="text-primary-600"
-                  />
-                  <div class="ml-3">
-                    <p class="font-medium text-sm">{{ method.name }}</p>
-                    <p class="text-xs text-gray-500">{{ method.time }}</p>
+                <v-card-text class="d-flex align-center justify-space-between py-3 px-4">
+                  <div class="d-flex align-center">
+                    <v-radio :value="method.id" hide-details></v-radio>
+                    <v-icon :icon="method.icon" class="ml-2 mr-3" size="20"></v-icon>
+                    <div>
+                      <p class="text-body-1 font-weight-medium mb-0">{{ method.name }}</p>
+                      <p class="text-body-2 text-medium-emphasis mb-0">{{ method.time }}</p>
+                    </div>
                   </div>
-                </div>
-                <span class="font-medium">${{ method.price }}</span>
-              </label>
-            </div>
+                  <span class="text-body-1 font-weight-bold">${{ method.price }}</span>
+                </v-card-text>
+              </v-card>
+            </v-radio-group>
 
-            <Button variant="primary" fullWidth @click="nextStep">
+            <v-btn
+              color="primary"
+              size="large"
+              block
+              rounded="lg"
+              class="mt-6 action-btn"
+              @click="nextStep"
+            >
               Continue to Payment
-            </Button>
-          </Card>
+              <v-icon end>mdi-arrow-right</v-icon>
+            </v-btn>
+          </v-card-text>
+        </v-card>
 
-          <!-- Step 2: Payment -->
-          <Card v-if="currentStep === 2" padding="md">
-            <h2 class="font-semibold text-lg mb-4">Payment Information</h2>
+        <!-- Step 2: Payment -->
+        <v-card v-if="currentStep === 2" rounded="xl" elevation="0" class="step-card">
+          <v-card-text class="pa-5 pa-md-6">
+            <h2 class="text-h6 font-weight-bold mb-5">
+              <v-icon start color="primary">mdi-credit-card</v-icon>
+              Payment Information
+            </h2>
 
-            <div class="space-y-4 mb-6">
-              <Input
-                v-model="paymentInfo.cardNumber"
-                label="Card Number"
-                placeholder="1234 5678 9012 3456"
-                required
-              />
-              <Input
-                v-model="paymentInfo.cardName"
-                label="Name on Card"
-                required
-              />
-              <div class="grid grid-cols-2 gap-4">
-                <Input
+            <v-row>
+              <v-col cols="12">
+                <v-text-field
+                  v-model="paymentInfo.cardNumber"
+                  label="Card Number"
+                  placeholder="1234 5678 9012 3456"
+                  variant="outlined"
+                  density="comfortable"
+                  rounded="lg"
+                  prepend-inner-icon="mdi-credit-card-outline"
+                  required
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12">
+                <v-text-field
+                  v-model="paymentInfo.cardName"
+                  label="Name on Card"
+                  variant="outlined"
+                  density="comfortable"
+                  rounded="lg"
+                  prepend-inner-icon="mdi-account-outline"
+                  required
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
                   v-model="paymentInfo.expiry"
                   label="Expiry Date"
                   placeholder="MM/YY"
+                  variant="outlined"
+                  density="comfortable"
+                  rounded="lg"
+                  prepend-inner-icon="mdi-calendar"
                   required
-                />
-                <Input
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
                   v-model="paymentInfo.cvv"
                   label="CVV"
                   placeholder="123"
+                  variant="outlined"
+                  density="comfortable"
+                  rounded="lg"
+                  prepend-inner-icon="mdi-lock-outline"
                   required
-                />
-              </div>
-            </div>
+                ></v-text-field>
+              </v-col>
+            </v-row>
 
-            <div class="flex gap-4">
-              <Button variant="outline" fullWidth @click="prevStep">
-                Back
-              </Button>
-              <Button variant="primary" fullWidth @click="nextStep">
-                Review Order
-              </Button>
-            </div>
-          </Card>
+            <v-row class="mt-4">
+              <v-col cols="6">
+                <v-btn
+                  variant="outlined"
+                  size="large"
+                  block
+                  rounded="lg"
+                  @click="prevStep"
+                >
+                  <v-icon start>mdi-arrow-left</v-icon>
+                  Back
+                </v-btn>
+              </v-col>
+              <v-col cols="6">
+                <v-btn
+                  color="primary"
+                  size="large"
+                  block
+                  rounded="lg"
+                  class="action-btn"
+                  @click="nextStep"
+                >
+                  Review Order
+                  <v-icon end>mdi-arrow-right</v-icon>
+                </v-btn>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
 
-          <!-- Step 3: Review -->
-          <Card v-if="currentStep === 3" padding="md">
-            <h2 class="font-semibold text-lg mb-4">Review Your Order</h2>
+        <!-- Step 3: Review -->
+        <v-card v-if="currentStep === 3" rounded="xl" elevation="0" class="step-card">
+          <v-card-text class="pa-5 pa-md-6">
+            <h2 class="text-h6 font-weight-bold mb-5">
+              <v-icon start color="primary">mdi-clipboard-check</v-icon>
+              Review Your Order
+            </h2>
 
             <!-- Shipping Summary -->
-            <div class="mb-4 pb-4 border-b">
-              <h3 class="font-medium text-sm text-gray-500 mb-2">Shipping To</h3>
-              <p class="text-sm">
-                {{ shippingInfo.firstName }} {{ shippingInfo.lastName }}<br />
-                {{ shippingInfo.address }}<br />
-                {{ shippingInfo.city }}, {{ shippingInfo.postalCode }}<br />
-                {{ shippingInfo.country }}
-              </p>
-            </div>
+            <v-card variant="flat" rounded="lg" class="bg-grey-lighten-4 mb-4">
+              <v-card-text class="pa-4">
+                <div class="d-flex align-center mb-2">
+                  <v-icon size="18" color="primary" class="mr-2">mdi-map-marker</v-icon>
+                  <span class="text-body-2 font-weight-bold text-uppercase" style="letter-spacing: 0.5px;">Shipping To</span>
+                </div>
+                <p class="text-body-1 mb-0">
+                  {{ shippingInfo.firstName }} {{ shippingInfo.lastName }}<br />
+                  {{ shippingInfo.address }}<br />
+                  {{ shippingInfo.city }}, {{ shippingInfo.postalCode }}<br />
+                  {{ shippingInfo.country }}
+                </p>
+              </v-card-text>
+            </v-card>
 
             <!-- Items -->
-            <div class="mb-4 pb-4 border-b">
-              <h3 class="font-medium text-sm text-gray-500 mb-2">Items</h3>
+            <v-card variant="flat" rounded="lg" class="bg-grey-lighten-4 mb-4">
+              <v-card-text class="pa-4">
+                <div class="d-flex align-center mb-3">
+                  <v-icon size="18" color="primary" class="mr-2">mdi-package-variant</v-icon>
+                  <span class="text-body-2 font-weight-bold text-uppercase" style="letter-spacing: 0.5px;">Items</span>
+                </div>
+                <div
+                  v-for="item in cartStore.items"
+                  :key="item.id"
+                  class="d-flex justify-space-between text-body-1 py-2"
+                >
+                  <span>{{ item.name }} x {{ item.quantity }}</span>
+                  <span class="font-weight-medium">${{ (item.price * item.quantity).toFixed(2) }}</span>
+                </div>
+              </v-card-text>
+            </v-card>
+
+            <v-row class="mt-6">
+              <v-col cols="6">
+                <v-btn
+                  variant="outlined"
+                  size="large"
+                  block
+                  rounded="lg"
+                  @click="prevStep"
+                >
+                  <v-icon start>mdi-arrow-left</v-icon>
+                  Back
+                </v-btn>
+              </v-col>
+              <v-col cols="6">
+                <v-btn
+                  color="primary"
+                  size="large"
+                  block
+                  rounded="lg"
+                  :loading="isProcessing"
+                  class="action-btn"
+                  @click="processPayment"
+                >
+                  <v-icon start>mdi-check</v-icon>
+                  Place Order
+                </v-btn>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- Order Summary -->
+      <v-col cols="12" lg="4">
+        <v-card rounded="xl" elevation="0" class="summary-card sticky-summary">
+          <v-card-text class="pa-5">
+            <h2 class="text-h6 font-weight-bold mb-5">Order Summary</h2>
+
+            <div class="d-flex flex-column ga-2 mb-4">
               <div
                 v-for="item in cartStore.items"
                 :key="item.id"
-                class="flex justify-between text-sm py-2"
+                class="d-flex justify-space-between text-body-2"
               >
-                <span>{{ item.name }} x {{ item.quantity }}</span>
-                <span>${{ (item.price * item.quantity).toFixed(2) }}</span>
+                <span class="text-medium-emphasis">{{ item.name }} x {{ item.quantity }}</span>
+                <span class="font-weight-medium">${{ (item.price * item.quantity).toFixed(2) }}</span>
               </div>
             </div>
 
-            <div class="flex gap-4">
-              <Button variant="outline" fullWidth @click="prevStep">
-                Back
-              </Button>
-              <Button
-                variant="primary"
-                fullWidth
-                :loading="isProcessing"
-                @click="processPayment"
-              >
-                Place Order
-              </Button>
-            </div>
-          </Card>
-        </div>
+            <v-divider class="mb-4"></v-divider>
 
-        <!-- Order Summary -->
-        <div>
-          <Card padding="md">
-            <h2 class="font-semibold text-lg mb-4">Order Summary</h2>
-
-            <div class="space-y-2 mb-4 text-sm">
-              <div
-                v-for="item in cartStore.items"
-                :key="item.id"
-                class="flex justify-between"
-              >
-                <span class="text-gray-600">{{ item.name }} x {{ item.quantity }}</span>
-                <span>${{ (item.price * item.quantity).toFixed(2) }}</span>
+            <div class="d-flex flex-column ga-2 text-body-1">
+              <div class="d-flex justify-space-between">
+                <span class="text-medium-emphasis">Subtotal</span>
+                <span class="font-weight-medium">${{ cartStore.totalPrice.toFixed(2) }}</span>
+              </div>
+              <div class="d-flex justify-space-between">
+                <span class="text-medium-emphasis">Shipping</span>
+                <span class="font-weight-medium">${{ selectedShippingPrice().toFixed(2) }}</span>
               </div>
             </div>
 
-            <div class="border-t pt-4 space-y-2 text-sm">
-              <div class="flex justify-between">
-                <span class="text-gray-600">Subtotal</span>
-                <span>${{ cartStore.totalPrice.toFixed(2) }}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-gray-600">Shipping</span>
-                <span>${{ selectedShippingPrice().toFixed(2) }}</span>
-              </div>
-            </div>
+            <v-divider class="my-4"></v-divider>
 
-            <div class="border-t mt-4 pt-4">
-              <div class="flex justify-between font-semibold">
-                <span>Total</span>
-                <span class="text-primary-600">
-                  ${{ (cartStore.totalPrice + selectedShippingPrice()).toFixed(2) }}
-                </span>
-              </div>
+            <div class="d-flex justify-space-between">
+              <span class="text-h6 font-weight-bold">Total</span>
+              <span class="text-h5 font-weight-bold text-primary">
+                ${{ (cartStore.totalPrice + selectedShippingPrice()).toFixed(2) }}
+              </span>
             </div>
-          </Card>
-        </div>
-      </div>
-    </div>
-  </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
+
+<style scoped>
+.stepper-custom :deep(.v-stepper-item) {
+  opacity: 1;
+}
+
+.step-card {
+  border: 1px solid rgba(var(--v-border-color), 0.08);
+}
+
+.shipping-method-card {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.summary-card {
+  background: rgb(var(--v-theme-surface-variant));
+}
+
+.sticky-summary {
+  position: sticky;
+  top: 80px;
+}
+
+.action-btn {
+  text-transform: none;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+</style>

@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(findstr:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(npm run dev:*)"
     ],
     "deny": [],
     "ask": []
