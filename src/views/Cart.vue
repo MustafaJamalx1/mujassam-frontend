@@ -1,212 +1,500 @@
 <script setup>
+import { computed } from 'vue'
 import { useCartStore } from '@/stores/cart'
 
 const cartStore = useCartStore()
 
-function updateQuantity(productId, newQuantity) {
-  cartStore.updateQuantity(productId, newQuantity)
-}
+const items = computed(() => cartStore.items)
+const subtotal = computed(() => cartStore.totalPrice)
+const shipping = computed(() => subtotal.value >= 50 ? 0 : 8.99)
+const total = computed(() => subtotal.value + shipping.value)
 
-function removeItem(productId) {
-  cartStore.removeItem(productId)
-}
+const placeholderColors = ['#E8D5C4', '#D4C5B2', '#C9B8A8', '#DDD0C4', '#E6DACC']
+const bgFor = (id) => placeholderColors[(id ?? 0) % placeholderColors.length]
 </script>
 
 <template>
-  <v-container class="py-6 py-md-10">
-    <h1 class="text-h4 text-md-h3 font-weight-bold mb-6 mb-md-8">Shopping Cart</h1>
+  <div class="cart-page">
+    <div class="container">
 
-    <div v-if="cartStore.items.length > 0">
-      <v-row>
-        <!-- Cart Items -->
-        <v-col cols="12" lg="8">
-          <div class="d-flex flex-column ga-3">
-            <v-card
-              v-for="item in cartStore.items"
-              :key="item.id"
-              rounded="xl"
-              elevation="0"
-              class="cart-item-card"
-            >
-              <v-card-text class="pa-4">
-                <div class="d-flex ga-4">
-                  <!-- Image -->
-                  <v-img
-                    width="100"
-                    height="100"
-                    class="bg-surface-variant rounded-lg flex-shrink-0"
-                  >
-                    <template v-slot:placeholder>
-                      <div class="d-flex align-center justify-center fill-height">
-                        <v-icon size="32" color="primary" style="opacity: 0.3;">mdi-cube-outline</v-icon>
-                      </div>
-                    </template>
-                  </v-img>
+      <!-- Header -->
+      <div class="page-head">
+        <div>
+          <nav class="breadcrumb">
+            <router-link to="/" class="bc-link">Home</router-link>
+            <v-icon size="14" class="bc-sep">mdi-chevron-right</v-icon>
+            <span class="bc-current">Cart</span>
+          </nav>
+          <h1 class="page-title">Your cart</h1>
+        </div>
+        <router-link to="/products" class="continue-link">
+          <v-icon size="16">mdi-arrow-left</v-icon>
+          Continue shopping
+        </router-link>
+      </div>
 
-                  <!-- Info -->
-                  <div class="flex-grow-1">
-                    <div class="d-flex justify-space-between align-start">
-                      <div>
-                        <h3 class="text-subtitle-1 font-weight-semibold mb-1">{{ item.name }}</h3>
-                        <v-chip
-                          v-if="item.material"
-                          size="x-small"
-                          variant="tonal"
-                          color="primary"
-                        >
-                          {{ item.material }}
-                        </v-chip>
-                      </div>
-                      <p class="text-h6 font-weight-bold text-primary">
-                        ${{ (item.price * item.quantity).toFixed(2) }}
-                      </p>
-                    </div>
+      <!-- Empty state -->
+      <div v-if="!items.length" class="empty-cart">
+        <div class="empty-icon-wrap">
+          <v-icon size="48" style="color: var(--color-muted-light);">mdi-shopping-outline</v-icon>
+        </div>
+        <h2 class="empty-title">Your cart is empty</h2>
+        <p class="empty-sub">Add some products or upload a custom design to get started.</p>
+        <div class="empty-actions">
+          <router-link to="/products" class="btn-primary">Browse products</router-link>
+          <router-link to="/upload"   class="btn-ghost">Upload a design</router-link>
+        </div>
+      </div>
 
-                    <div class="d-flex align-center justify-space-between mt-4">
-                      <!-- Quantity -->
-                      <div class="d-flex align-center ga-2">
-                        <v-btn
-                          icon
-                          variant="tonal"
-                          size="x-small"
-                          @click="updateQuantity(item.id, item.quantity - 1)"
-                        >
-                          <v-icon size="16">mdi-minus</v-icon>
-                        </v-btn>
-                        <span class="text-body-1 font-weight-medium" style="min-width: 32px; text-align: center;">
-                          {{ item.quantity }}
-                        </span>
-                        <v-btn
-                          icon
-                          variant="tonal"
-                          size="x-small"
-                          @click="updateQuantity(item.id, item.quantity + 1)"
-                        >
-                          <v-icon size="16">mdi-plus</v-icon>
-                        </v-btn>
-                      </div>
+      <!-- Cart with items -->
+      <div v-else class="cart-layout">
 
-                      <!-- Remove -->
-                      <v-btn
-                        variant="text"
-                        color="error"
-                        size="small"
-                        class="text-none"
-                        @click="removeItem(item.id)"
-                      >
-                        <v-icon start size="16">mdi-delete-outline</v-icon>
-                        Remove
-                      </v-btn>
-                    </div>
-                  </div>
-                </div>
-              </v-card-text>
-            </v-card>
+        <!-- ─── Line items ───────────────────────────────────────── -->
+        <div class="cart-items">
+          <div class="cart-items-header">
+            <span>Product</span>
+            <span class="header-qty">Qty</span>
+            <span class="header-price">Price</span>
           </div>
-        </v-col>
 
-        <!-- Order Summary -->
-        <v-col cols="12" lg="4">
-          <v-card rounded="xl" elevation="0" class="summary-card sticky-summary">
-            <v-card-text class="pa-5">
-              <h2 class="text-h6 font-weight-bold mb-5">Order Summary</h2>
+          <div class="item-list">
+            <div v-for="item in items" :key="item.id" class="cart-item">
+              <!-- Thumbnail -->
+              <div class="item-thumb" :style="{ background: bgFor(item.id) }">
+                <v-icon size="24" style="color: rgba(58,30,15,0.2);">mdi-cube-outline</v-icon>
+              </div>
 
-              <div class="d-flex flex-column ga-3 mb-4">
-                <div class="d-flex justify-space-between text-body-1">
-                  <span class="text-medium-emphasis">Subtotal</span>
-                  <span class="font-weight-medium">${{ cartStore.totalPrice.toFixed(2) }}</span>
-                </div>
-                <div class="d-flex justify-space-between text-body-1">
-                  <span class="text-medium-emphasis">Shipping</span>
-                  <span class="text-body-2">Calculated at checkout</span>
+              <!-- Info -->
+              <div class="item-info">
+                <span class="item-name">{{ item.name }}</span>
+                <div class="item-meta">
+                  <span v-if="item.material" class="item-attr">{{ item.material }}</span>
+                  <span v-if="item.color"    class="item-attr">{{ item.color }}</span>
                 </div>
               </div>
 
-              <v-divider class="mb-4"></v-divider>
-
-              <div class="d-flex justify-space-between mb-6">
-                <span class="text-h6 font-weight-bold">Total</span>
-                <span class="text-h5 font-weight-bold text-primary">${{ cartStore.totalPrice.toFixed(2) }}</span>
+              <!-- Quantity stepper -->
+              <div class="item-qty">
+                <button class="qty-btn" @click="cartStore.updateQuantity(item.id, item.quantity - 1)">
+                  <v-icon size="14">mdi-minus</v-icon>
+                </button>
+                <span class="qty-value">{{ item.quantity }}</span>
+                <button class="qty-btn" @click="cartStore.updateQuantity(item.id, item.quantity + 1)">
+                  <v-icon size="14">mdi-plus</v-icon>
+                </button>
               </div>
 
-              <v-btn
-                color="primary"
-                size="x-large"
-                block
-                rounded="lg"
-                to="/checkout"
-                elevation="4"
-                class="checkout-btn mb-3"
-              >
-                <v-icon start>mdi-lock</v-icon>
-                Proceed to Checkout
-              </v-btn>
+              <!-- Price -->
+              <div class="item-price">
+                ${{ (item.price * item.quantity).toFixed(2) }}
+              </div>
 
-              <v-btn
-                variant="text"
-                color="primary"
-                block
-                to="/products"
-                class="text-none"
-              >
-                <v-icon start size="18">mdi-arrow-left</v-icon>
-                Continue Shopping
-              </v-btn>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
+              <!-- Remove -->
+              <button class="item-remove" @click="cartStore.removeItem(item.id)" aria-label="Remove">
+                <v-icon size="16">mdi-close</v-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- Clear cart -->
+          <div class="cart-actions">
+            <button class="clear-btn" @click="cartStore.clearCart">
+              <v-icon size="14">mdi-trash-can-outline</v-icon>
+              Clear cart
+            </button>
+          </div>
+        </div>
+
+        <!-- ─── Order summary ─────────────────────────────────────── -->
+        <aside class="order-summary">
+          <h2 class="summary-title">Order summary</h2>
+
+          <div class="summary-lines">
+            <div class="summary-line">
+              <span>Subtotal ({{ cartStore.itemCount }} {{ cartStore.itemCount === 1 ? 'item' : 'items' }})</span>
+              <span>${{ subtotal.toFixed(2) }}</span>
+            </div>
+            <div class="summary-line">
+              <span>Shipping</span>
+              <span v-if="shipping === 0" class="free-label">Free</span>
+              <span v-else>${{ shipping.toFixed(2) }}</span>
+            </div>
+            <div v-if="shipping > 0" class="summary-free-note">
+              Add ${{ (50 - subtotal).toFixed(2) }} more for free shipping
+            </div>
+            <div class="summary-divider"></div>
+            <div class="summary-line summary-line--total">
+              <span>Total</span>
+              <span>${{ total.toFixed(2) }}</span>
+            </div>
+          </div>
+
+          <router-link to="/checkout" class="checkout-btn">
+            <v-icon size="18">mdi-lock-outline</v-icon>
+            Proceed to checkout
+          </router-link>
+
+          <div class="summary-trust">
+            <span class="trust-item">
+              <v-icon size="14">mdi-shield-check-outline</v-icon>
+              Secure checkout
+            </span>
+            <span class="trust-item">
+              <v-icon size="14">mdi-credit-card-outline</v-icon>
+              All major cards
+            </span>
+          </div>
+        </aside>
+      </div>
+
     </div>
-
-    <!-- Empty Cart -->
-    <v-card v-else variant="flat" class="text-center py-16 bg-transparent">
-      <v-avatar color="surface-variant" size="120" class="mb-6">
-        <v-icon icon="mdi-cart-outline" size="64" color="primary" style="opacity: 0.5;"></v-icon>
-      </v-avatar>
-      <h2 class="text-h5 font-weight-bold mb-2">Your cart is empty</h2>
-      <p class="text-body-1 text-medium-emphasis mb-6">Add some items to get started</p>
-      <v-btn color="primary" size="x-large" rounded="lg" to="/products" class="text-none" elevation="2">
-        <v-icon start>mdi-shopping</v-icon>
-        Browse Products
-      </v-btn>
-    </v-card>
-  </v-container>
+  </div>
 </template>
 
 <style scoped>
-.cart-item-card {
-  border: 1px solid rgba(var(--v-border-color), 0.08);
-  transition: all 0.3s ease;
+.cart-page {
+  background: var(--color-cream);
+  min-height: 100vh;
+  padding-top: 64px;
+}
+.container {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
 }
 
-.cart-item-card:hover {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border-color: rgb(var(--v-theme-primary));
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 40px 0 32px;
+  border-bottom: 1px solid var(--color-divider);
+  margin-bottom: 40px;
+}
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+.bc-link {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  text-decoration: none;
+}
+.bc-link:hover { color: var(--color-terracotta); }
+.bc-sep { color: var(--color-muted-light); }
+.bc-current { font-size: 0.8rem; color: var(--color-ink); font-weight: 500; }
+.page-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 700;
+  color: var(--color-ink);
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+.continue-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  text-decoration: none;
+  transition: color var(--duration-fast);
+}
+.continue-link:hover { color: var(--color-terracotta); }
+
+/* Empty state */
+.empty-cart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 80px 24px;
+  text-align: center;
+}
+.empty-icon-wrap {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--color-cream-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.empty-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  margin: 0;
+  letter-spacing: -0.03em;
+}
+.empty-sub { font-size: 0.95rem; color: var(--color-muted); margin: 0; }
+.empty-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 8px; }
+
+/* Layout */
+.cart-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  align-items: start;
+}
+@media (min-width: 900px) {
+  .cart-layout { grid-template-columns: 1fr 360px; }
 }
 
-.summary-card {
-  border: 1px solid rgba(var(--v-border-color), 0.08);
+/* Items */
+.cart-items { display: flex; flex-direction: column; gap: 0; }
+
+.cart-items-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto auto;
+  gap: 16px;
+  align-items: center;
+  padding: 0 0 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  border-bottom: 2px solid var(--color-divider);
+}
+.header-qty  { text-align: center; }
+.header-price { text-align: right; }
+
+.item-list { display: flex; flex-direction: column; }
+
+.cart-item {
+  display: grid;
+  grid-template-columns: 64px 1fr auto auto auto;
+  gap: 16px;
+  align-items: center;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--color-divider);
 }
 
-.sticky-summary {
+.item-thumb {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid var(--color-divider);
+}
+
+.item-info { display: flex; flex-direction: column; gap: 4px; overflow: hidden; }
+.item-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.item-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+.item-attr {
+  font-size: 0.73rem;
+  color: var(--color-muted);
+  background: var(--color-cream-dark);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+}
+
+.item-qty {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #fff;
+}
+.qty-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--color-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--duration-fast), color var(--duration-fast);
+}
+.qty-btn:hover { background: var(--color-cream); color: var(--color-ink); }
+.qty-value {
+  min-width: 28px;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  border-left: 1px solid var(--color-divider);
+  border-right: 1px solid var(--color-divider);
+  line-height: 32px;
+}
+
+.item-price {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  white-space: nowrap;
+  text-align: right;
+}
+
+.item-remove {
+  background: none;
+  border: none;
+  color: var(--color-muted-light);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  transition: color var(--duration-fast), background var(--duration-fast);
+}
+.item-remove:hover { color: #C0392B; background: rgba(192,57,43,0.07); }
+
+.cart-actions { padding: 16px 0; }
+.clear-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color var(--duration-fast);
+}
+.clear-btn:hover { color: #C0392B; }
+
+/* Summary */
+.order-summary {
+  background: #fff;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-xl);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
   position: sticky;
-  top: 80px;
+  top: 88px;
+}
+.summary-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.summary-lines { display: flex; flex-direction: column; gap: 0; }
+.summary-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  font-size: 0.9rem;
+  color: var(--color-muted);
+}
+.summary-line span:last-child { color: var(--color-ink); font-weight: 500; }
+.free-label { color: #27795B !important; font-weight: 700 !important; }
+.summary-free-note {
+  font-size: 0.75rem;
+  color: var(--color-muted-light);
+  padding: 0 0 8px;
+  font-style: italic;
+}
+.summary-divider { height: 1px; background: var(--color-divider); margin: 4px 0; }
+.summary-line--total {
+  padding: 14px 0 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-ink) !important;
+}
+.summary-line--total span:last-child {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--color-terracotta) !important;
+  letter-spacing: -0.04em;
 }
 
 .checkout-btn {
-  text-transform: none;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  transition: transform 0.2s ease;
-}
-
-.checkout-btn:hover {
-  transform: translateY(-2px);
-}
-
-:deep(.v-btn) {
-  text-transform: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+  background: var(--color-terracotta);
+  color: #fff;
+  border-radius: var(--radius-lg);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
   font-weight: 600;
-  letter-spacing: 0;
+  text-decoration: none;
+  box-shadow: 0 4px 16px rgba(184,92,56,0.3);
+  transition: background var(--duration-fast), transform var(--duration-fast);
 }
+.checkout-btn:hover {
+  background: var(--color-terra-dark);
+  transform: translateY(-1px);
+}
+
+.summary-trust {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+.trust-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  color: var(--color-muted);
+}
+.trust-item :deep(.v-icon) { color: var(--color-muted-light) !important; }
+
+/* Shared buttons */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 24px;
+  background: var(--color-terracotta);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-lg);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--duration-fast);
+}
+.btn-primary:hover { background: var(--color-terra-dark); }
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 24px;
+  background: #fff;
+  color: var(--color-ink);
+  border: 1.5px solid var(--color-divider);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color var(--duration-fast);
+}
+.btn-ghost:hover { border-color: var(--color-muted-light); }
 </style>

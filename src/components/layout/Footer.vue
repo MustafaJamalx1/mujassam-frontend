@@ -1,198 +1,259 @@
 <script setup>
-const currentYear = new Date().getFullYear()
+const year = new Date().getFullYear()
 
-const footerLinks = {
-  company: [
-    { name: 'About Us', path: '/about' },
-    { name: 'Contact', path: '/contact' },
-    { name: 'Careers', path: '/careers' }
-  ],
-  support: [
-    { name: 'Help Center', path: '/help' },
-    { name: 'Shipping Info', path: '/shipping' },
-    { name: 'Returns', path: '/returns' }
-  ],
-  legal: [
-    { name: 'Privacy Policy', path: '/privacy' },
-    { name: 'Terms of Service', path: '/terms' }
-  ]
-}
+const quickLinks = [
+  { label: 'Browse Products', to: '/products' },
+  { label: 'Upload a Design', to: '/upload' },
+  { label: 'Your Cart', to: '/cart' },
+]
 
-const socialLinks = [
-  { icon: 'mdi-twitter', url: '#' },
-  { icon: 'mdi-instagram', url: '#' },
-  { icon: 'mdi-facebook', url: '#' }
+const materialLinks = [
+  { label: 'PLA', href: '#' },
+  { label: 'ABS', href: '#' },
+  { label: 'PETG', href: '#' },
+  { label: 'Resin', href: '#' },
+]
+
+const socials = [
+  { icon: 'mdi-instagram', href: '#', label: 'Instagram' },
+  { icon: 'mdi-twitter', href: '#', label: 'Twitter' },
+  { icon: 'mdi-linkedin', href: '#', label: 'LinkedIn' },
 ]
 </script>
 
 <template>
-  <footer class="modern-footer">
-    <!-- Main Footer -->
-    <div class="footer-main section-padding">
-      <v-container>
-        <v-row>
-          <!-- Brand -->
-          <v-col cols="12" md="4">
-            <div class="footer-brand mb-6">
-              <div class="d-flex align-center mb-4">
-                <div 
-                  style="width: 48px; height: 48px; background: black; border: 2px solid black; display: flex; align-items: center; justify-content: center;"
-                >
-                  <v-icon color="white" size="28">mdi-cube-outline</v-icon>
-                </div>
-                <div class="ml-3">
-                  <div class="text-h5 font-weight-bold" style="font-family: var(--font-display); color: black; text-transform: uppercase; letter-spacing: 1px;">
-                    MUJASSAM
-                  </div>
-                  <div class="text-caption" style="color: #606060; margin-top: -4px; text-transform: uppercase; letter-spacing: 1px;">3D PRINTING</div>
-                </div>
-              </div>
-              <p class="text-body-2 mb-5" style="color: #606060; line-height: 1.6;">
-                Precision 3D printing for custom designs and rapid prototyping.
-              </p>
-              
-              <!-- Social links -->
-              <div class="d-flex ga-2">
-                <a
-                  v-for="social in socialLinks"
-                  :key="social.icon"
-                  :href="social.url"
-                  class="social-link"
-                  style="border: 2px solid black; background: white; color: black;"
-                >
-                  <v-icon size="20">{{ social.icon }}</v-icon>
-                </a>
-              </div>
-            </div>
-          </v-col>
+  <footer class="site-footer">
+    <!-- Main footer body -->
+    <div class="footer-body">
+      <div class="footer-grid">
 
-          <!-- Links -->
-          <v-col cols="12" md="8">
-            <v-row>
-              <!-- Company links -->
-              <v-col cols="6" sm="4">
-                <h3 class="footer-heading mb-4" style="color: black; text-transform: uppercase; letter-spacing: 1px;">COMPANY</h3>
-                <ul class="footer-links">
-                  <li v-for="link in footerLinks.company" :key="link.name">
-                    <router-link :to="link.path" class="footer-link">
-                      {{ link.name }}
-                    </router-link>
-                  </li>
-                </ul>
-              </v-col>
+        <!-- Brand column -->
+        <div class="footer-col footer-col--brand">
+          <div class="footer-logo">
+            <span class="footer-logo-icon">
+              <v-icon size="18" style="color:#fff;">mdi-cube-scan</v-icon>
+            </span>
+            <span class="footer-logo-text">Mujassam</span>
+          </div>
+          <p class="footer-tagline">
+            Turning ideas into tangible objects — one layer at a time.
+            Premium 3D printing for makers, designers, and dreamers.
+          </p>
+          <div class="footer-socials">
+            <a
+              v-for="s in socials"
+              :key="s.label"
+              :href="s.href"
+              :aria-label="s.label"
+              class="social-btn"
+            >
+              <v-icon size="18">{{ s.icon }}</v-icon>
+            </a>
+          </div>
+        </div>
 
-              <!-- Support links -->
-              <v-col cols="6" sm="4">
-                <h3 class="footer-heading mb-4" style="color: black; text-transform: uppercase; letter-spacing: 1px;">SUPPORT</h3>
-                <ul class="footer-links">
-                  <li v-for="link in footerLinks.support" :key="link.name">
-                    <router-link :to="link.path" class="footer-link">
-                      {{ link.name }}
-                    </router-link>
-                  </li>
-                </ul>
-              </v-col>
+        <!-- Quick Links -->
+        <div class="footer-col">
+          <h4 class="footer-heading">Quick Links</h4>
+          <ul class="footer-list">
+            <li v-for="link in quickLinks" :key="link.label">
+              <router-link :to="link.to" class="footer-link">{{ link.label }}</router-link>
+            </li>
+          </ul>
+        </div>
 
-              <!-- Legal links -->
-              <v-col cols="12" sm="4">
-                <h3 class="footer-heading mb-4" style="color: black; text-transform: uppercase; letter-spacing: 1px;">LEGAL</h3>
-                <ul class="footer-links">
-                  <li v-for="link in footerLinks.legal" :key="link.name">
-                    <router-link :to="link.path" class="footer-link">
-                      {{ link.name }}
-                    </router-link>
-                  </li>
-                </ul>
-              </v-col>
-            </v-row>
-          </v-col>
-        </v-row>
-      </v-container>
+        <!-- Materials -->
+        <div class="footer-col">
+          <h4 class="footer-heading">Materials</h4>
+          <ul class="footer-list">
+            <li v-for="m in materialLinks" :key="m.label">
+              <a :href="m.href" class="footer-link">{{ m.label }}</a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Contact -->
+        <div class="footer-col">
+          <h4 class="footer-heading">Get in Touch</h4>
+          <ul class="footer-list footer-list--contact">
+            <li>
+              <v-icon size="16" class="footer-contact-icon">mdi-email-outline</v-icon>
+              <a href="mailto:hello@mujassam.com" class="footer-link">hello@mujassam.com</a>
+            </li>
+            <li>
+              <v-icon size="16" class="footer-contact-icon">mdi-map-marker-outline</v-icon>
+              <span class="footer-link footer-link--plain">Riyadh, Saudi Arabia</span>
+            </li>
+          </ul>
+        </div>
+
+      </div>
     </div>
 
     <!-- Bottom bar -->
-    <div class="footer-bottom" style="border-top: 2px solid black;">
-      <v-container>
-        <div class="d-flex flex-column flex-sm-row align-center justify-space-between ga-4">
-          <div class="text-body-2" style="color: black; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
-            &copy; {{ currentYear }} <span class="font-weight-bold">MUJASSAM</span>. ALL RIGHTS RESERVED.
-          </div>
-          <div class="d-flex align-center ga-2">
-            <div class="pa-2 px-3" style="border: 2px solid black; background: white;">
-              <span style="color: black; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.75rem;">ISO CERTIFIED</span>
-            </div>
-            <div class="pa-2 px-3" style="border: 2px solid black; background: white;">
-              <span style="color: black; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.75rem;">ECO-FRIENDLY</span>
-            </div>
-          </div>
+    <div class="footer-bottom">
+      <div class="footer-bottom-inner">
+        <span class="footer-copy">© {{ year }} Mujassam. All rights reserved.</span>
+        <div class="footer-legal">
+          <a href="#" class="footer-legal-link">Privacy Policy</a>
+          <a href="#" class="footer-legal-link">Terms of Service</a>
         </div>
-      </v-container>
+      </div>
     </div>
   </footer>
 </template>
 
 <style scoped>
-.modern-footer {
-  position: relative;
-  background: white;
-  margin-top: 80px;
+.site-footer {
+  background: var(--color-brown);
+  color: rgba(250, 247, 242, 0.75);
+  font-family: var(--font-body);
 }
 
-.footer-main {
-  position: relative;
-  padding: 60px 0;
+/* Main body */
+.footer-body {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 64px 24px 48px;
 }
 
-.social-link {
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 40px;
+}
+@media (min-width: 640px) {
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 1024px) {
+  .footer-grid { grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; }
+}
+
+/* Brand column */
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.footer-logo-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  text-decoration: none;
-  transition: all 0.2s ease;
+  width: 32px;
+  height: 32px;
+  background: var(--color-terracotta);
+  border-radius: 7px;
+  flex-shrink: 0;
 }
-
-.social-link:hover {
-  box-shadow: 4px 4px 0 black;
-  transform: translate(-2px, -2px);
-}
-
-.footer-heading {
-  font-size: 0.938rem;
-  font-weight: 700;
+.footer-logo-text {
   font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-cream);
+  letter-spacing: -0.02em;
 }
 
-.footer-links {
+.footer-tagline {
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: rgba(250, 247, 242, 0.6);
+  margin-bottom: 24px;
+  max-width: 280px;
+}
+
+.footer-socials {
+  display: flex;
+  gap: 8px;
+}
+.social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(250, 247, 242, 0.08);
+  color: rgba(250, 247, 242, 0.6);
+  text-decoration: none;
+  transition: background var(--duration-fast) var(--ease-out),
+              color var(--duration-fast) var(--ease-out);
+}
+.social-btn:hover {
+  background: var(--color-terracotta);
+  color: #fff;
+}
+
+/* Columns */
+.footer-heading {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(250, 247, 242, 0.4);
+  margin-bottom: 16px;
+}
+
+.footer-list {
   list-style: none;
   padding: 0;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.footer-links li {
-  margin-bottom: 0.75rem;
+.footer-list--contact li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-contact-icon {
+  color: rgba(250, 247, 242, 0.4) !important;
+  flex-shrink: 0;
 }
 
 .footer-link {
-  color: #606060;
+  font-size: 0.9rem;
+  color: rgba(250, 247, 242, 0.7);
   text-decoration: none;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: color 0.2s ease;
-  display: inline-block;
+  transition: color var(--duration-fast) var(--ease-out);
 }
+.footer-link:hover { color: var(--color-cream); }
+.footer-link--plain { cursor: default; }
+.footer-link--plain:hover { color: rgba(250, 247, 242, 0.7); }
 
-.footer-link:hover {
-  color: black;
-}
-
+/* Bottom bar */
 .footer-bottom {
-  padding: 1.5rem 0;
-  background: white;
+  border-top: 1px solid rgba(250, 247, 242, 0.08);
+}
+.footer-bottom-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 16px 24px;
 }
 
-.section-padding {
-  padding: 60px 0;
+.footer-copy {
+  font-size: 0.8rem;
+  color: rgba(250, 247, 242, 0.35);
 }
+
+.footer-legal {
+  display: flex;
+  gap: 20px;
+}
+.footer-legal-link {
+  font-size: 0.8rem;
+  color: rgba(250, 247, 242, 0.35);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+.footer-legal-link:hover { color: rgba(250, 247, 242, 0.7); }
 </style>

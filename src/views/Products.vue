@@ -1,625 +1,664 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useProductsStore } from '@/stores/products'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import ProductCard from '@/components/common/ProductCard.vue'
 
-const productsStore = useProductsStore()
-
-const viewMode = ref('grid')
-const drawer = ref(false)
-const searchQuery = ref('')
+const route = useRoute()
+const mobileFilterOpen = ref(false)
+const searchQuery = ref(route.query.q || '')
 const selectedCategories = ref([])
-const priceRange = ref([0, 100])
+const priceRange = ref([0, 150])
+const sortBy = ref('featured')
 
 const categories = ['Figurines', 'Home Decor', 'Gadgets', 'Art', 'Games']
-
-// Placeholder products for development
-const placeholderProducts = [
-  { id: 1, name: 'Dragon Figurine', price: 29.99, category: 'Figurines', image: '' },
-  { id: 2, name: 'Geometric Vase', price: 24.99, category: 'Home Decor', image: '' },
-  { id: 3, name: 'Phone Stand', price: 14.99, category: 'Gadgets', image: '' },
-  { id: 4, name: 'Abstract Sculpture', price: 49.99, category: 'Art', image: '' },
-  { id: 5, name: 'Chess Set', price: 39.99, category: 'Games', image: '' },
-  { id: 6, name: 'Desk Organizer', price: 19.99, category: 'Gadgets', image: '' }
+const sortOptions = [
+  { label: 'Featured',    value: 'featured' },
+  { label: 'Newest',      value: 'newest' },
+  { label: 'Price: Low',  value: 'price-asc' },
+  { label: 'Price: High', value: 'price-desc' },
 ]
+
+const allProducts = [
+  { id: 1, name: 'Dragon Figurine',     price: 29.99, category: 'Figurines', image: '' },
+  { id: 2, name: 'Geometric Vase',      price: 24.99, category: 'Home Decor', image: '' },
+  { id: 3, name: 'Modular Phone Stand', price: 14.99, category: 'Gadgets',   image: '' },
+  { id: 4, name: 'Abstract Sculpture',  price: 49.99, category: 'Art',       image: '' },
+  { id: 5, name: 'Chess Set',           price: 39.99, category: 'Games',     image: '' },
+  { id: 6, name: 'Desk Organiser',      price: 19.99, category: 'Gadgets',   image: '' },
+  { id: 7, name: 'Bonsai Pot',          price: 22.50, category: 'Home Decor', image: '' },
+  { id: 8, name: 'Articulated Hand',    price: 34.99, category: 'Art',       image: '' },
+]
+
+const filtered = computed(() => {
+  let list = allProducts
+
+  if (searchQuery.value.trim()) {
+    const q = searchQuery.value.toLowerCase()
+    list = list.filter(p => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q))
+  }
+  if (selectedCategories.value.length) {
+    list = list.filter(p => selectedCategories.value.includes(p.category))
+  }
+  const [min, max] = priceRange.value
+  list = list.filter(p => p.price >= min && p.price <= max)
+
+  if (sortBy.value === 'price-asc')  list = [...list].sort((a, b) => a.price - b.price)
+  if (sortBy.value === 'price-desc') list = [...list].sort((a, b) => b.price - a.price)
+
+  return list
+})
+
+const activeFilterCount = computed(
+  () => selectedCategories.value.length + (priceRange.value[0] > 0 || priceRange.value[1] < 150 ? 1 : 0)
+)
 
 function clearFilters() {
   selectedCategories.value = []
-  priceRange.value = [0, 100]
+  priceRange.value = [0, 150]
   searchQuery.value = ''
 }
 
+function toggleCategory(cat) {
+  const idx = selectedCategories.value.indexOf(cat)
+  if (idx > -1) selectedCategories.value.splice(idx, 1)
+  else selectedCategories.value.push(cat)
+}
+
 onMounted(() => {
-  productsStore.fetchProducts()
+  if (route.query.category) {
+    const cat = categories.find(c => c.toLowerCase() === route.query.category)
+    if (cat) selectedCategories.value = [cat]
+  }
 })
 </script>
 
 <template>
   <div class="products-page">
-    <v-container class="py-6 py-md-10">
-      <!-- Header -->
-      <div class="page-header mb-8 mb-md-10">
-        <div class="d-flex flex-column flex-md-row align-md-center justify-space-between ga-4">
-          <div>
-            <div class="mb-3">
-              <div class="d-inline-flex align-center px-4 py-2" style="border: 2px solid black; background: white;">
-                <span class="text-body-2 font-weight-bold" style="color: black; text-transform: uppercase; letter-spacing: 1px;">SHOP</span>
-              </div>
-            </div>
-            <h1 class="text-h3 text-md-h2 font-weight-bold mb-2" style="font-family: var(--font-display); letter-spacing: -0.02em; color: black; text-transform: uppercase;">
-              3D PRINTED COLLECTION
-            </h1>
-            <p class="text-body-1" style="color: #404040;">Premium 3D printed designs crafted with precision</p>
-          </div>
-          
-          <div class="d-flex align-center ga-2 ga-md-3 flex-wrap">
-            <!-- Search -->
-            <div class="search-wrapper">
-              <v-text-field
-                v-model="searchQuery"
-                prepend-inner-icon="mdi-magnify"
-                placeholder="SEARCH"
-                variant="outlined"
-                density="comfortable"
-                hide-details
-                single-line
-                style="min-width: 220px; max-width: 300px; border-radius: 0;"
-                :style="{ '--v-field-border-color': 'black', '--v-field-border-width': '2px' }"
-              ></v-text-field>
-            </div>
+    <div class="container">
 
-            <!-- View toggle -->
-            <div class="pa-1" style="border: 2px solid black; background: white;">
-              <v-btn-toggle
-                v-model="viewMode"
-                mandatory
-                density="comfortable"
-                color="black"
-              >
-                <v-btn value="grid" icon size="small" style="border-radius: 0;">
-                  <v-icon size="20">mdi-view-grid</v-icon>
-                </v-btn>
-                <v-btn value="list" icon size="small" style="border-radius: 0;">
-                  <v-icon size="20">mdi-view-list</v-icon>
-                </v-btn>
-              </v-btn-toggle>
-            </div>
+      <!-- Page header -->
+      <div class="page-head">
+        <div>
+          <nav class="breadcrumb" aria-label="Breadcrumb">
+            <router-link to="/" class="bc-link">Home</router-link>
+            <v-icon size="14" class="bc-sep">mdi-chevron-right</v-icon>
+            <span class="bc-current">Products</span>
+          </nav>
+          <h1 class="page-title">Our collection</h1>
+          <p class="page-sub">{{ filtered.length }} products ready to ship</p>
+        </div>
 
-            <!-- Filter toggle (mobile) -->
-            <v-btn
-              class="d-md-none"
-              @click="drawer = true"
-              icon
-              style="border-radius: 0; border: 2px solid black; color: black;"
-            >
-              <v-icon>mdi-filter-variant</v-icon>
-            </v-btn>
+        <!-- Search + Sort -->
+        <div class="page-controls">
+          <div class="search-wrap">
+            <v-icon size="16" class="search-icon">mdi-magnify</v-icon>
+            <input
+              v-model="searchQuery"
+              placeholder="Search products…"
+              class="search-input"
+            />
           </div>
+
+          <select v-model="sortBy" class="sort-select">
+            <option v-for="opt in sortOptions" :key="opt.value" :value="opt.value">
+              {{ opt.label }}
+            </option>
+          </select>
+
+          <!-- Mobile filter toggle -->
+          <button class="filter-toggle d-md-none" @click="mobileFilterOpen = true">
+            <v-icon size="18">mdi-tune-variant</v-icon>
+            Filters
+            <span v-if="activeFilterCount" class="filter-badge">{{ activeFilterCount }}</span>
+          </button>
         </div>
       </div>
 
-      <v-row>
-        <!-- Filters Sidebar (Desktop) -->
-        <v-col cols="12" md="3" class="d-none d-md-block">
-        <div class="pa-6 sticky-filter" style="border: 3px solid black; background: white; box-shadow: 6px 6px 0 black;">
-          <div class="d-flex align-center justify-space-between mb-5">
-            <h3 class="text-h6 font-weight-bold" style="font-family: var(--font-display); color: black; text-transform: uppercase; letter-spacing: 1px;">
-              FILTERS
-            </h3>
+      <!-- Layout -->
+      <div class="products-layout">
+
+        <!-- ─── Sidebar ───────────────────────────────────────────── -->
+        <aside class="filters-sidebar d-none d-md-flex">
+          <div class="filters-header">
+            <span class="filters-title">Filters</span>
+            <button v-if="activeFilterCount" class="filters-clear" @click="clearFilters">
+              Clear all
+            </button>
           </div>
-          
-          <v-divider class="mb-5" style="border-color: black; border-width: 2px;"></v-divider>
-          
-          <!-- Categories -->
-          <div class="filter-section mb-6">
-            <p class="text-body-2 font-weight-bold mb-4" style="color: black; letter-spacing: 1px; text-transform: uppercase;">
-              CATEGORY
-            </p>
+
+          <!-- Category -->
+          <div class="filter-group">
+            <h4 class="filter-group-label">Category</h4>
             <div class="filter-options">
-              <div 
-                v-for="category in categories" 
-                :key="category"
-                class="filter-option mb-2"
+              <label
+                v-for="cat in categories"
+                :key="cat"
+                class="filter-chip"
+                :class="{ 'filter-chip--active': selectedCategories.includes(cat) }"
               >
-                <v-checkbox
-                  v-model="selectedCategories"
-                  :label="category"
-                  :value="category"
-                  density="comfortable"
-                  hide-details
-                  color="black"
-                ></v-checkbox>
-              </div>
+                <input
+                  type="checkbox"
+                  :checked="selectedCategories.includes(cat)"
+                  @change="toggleCategory(cat)"
+                  class="sr-only"
+                />
+                {{ cat }}
+              </label>
             </div>
           </div>
 
-          <!-- Price Range -->
-          <div class="filter-section mb-6">
-            <p class="text-body-2 font-weight-bold mb-5" style="color: black; letter-spacing: 1px; text-transform: uppercase;">
-              PRICE RANGE
-            </p>
+          <!-- Price -->
+          <div class="filter-group">
+            <h4 class="filter-group-label">
+              Price
+              <span class="filter-group-range">${{ priceRange[0] }} – ${{ priceRange[1] }}</span>
+            </h4>
             <v-range-slider
               v-model="priceRange"
               :min="0"
-              :max="100"
+              :max="150"
               :step="5"
-              thumb-label="always"
-              color="black"
-              track-color="#d0d0d0"
+              color="primary"
+              track-color="#E8DFD3"
               hide-details
-              class="mt-6"
-            ></v-range-slider>
-            <div class="d-flex justify-space-between mt-4">
-              <div class="pa-3" style="border: 2px solid black; background: white;">
-                <span class="text-caption font-weight-bold" style="color: black; text-transform: uppercase;">MIN</span>
-                <div class="text-body-1 font-weight-bold" style="color: black;">${{ priceRange[0] }}</div>
-              </div>
-              <div class="pa-3" style="border: 2px solid black; background: white;">
-                <span class="text-caption font-weight-bold" style="color: black; text-transform: uppercase;">MAX</span>
-                <div class="text-body-1 font-weight-bold" style="color: black;">${{ priceRange[1] }}</div>
-              </div>
+              class="price-slider"
+            />
+          </div>
+        </aside>
+
+        <!-- ─── Grid ─────────────────────────────────────────────── -->
+        <div class="products-col">
+          <!-- Results info -->
+          <div v-if="activeFilterCount" class="active-filters">
+            <span class="active-filters-label">Active filters:</span>
+            <span
+              v-for="cat in selectedCategories"
+              :key="cat"
+              class="filter-tag"
+            >
+              {{ cat }}
+              <button @click="toggleCategory(cat)" class="filter-tag-remove">
+                <v-icon size="12">mdi-close</v-icon>
+              </button>
+            </span>
+            <button class="clear-link" @click="clearFilters">Clear all</button>
+          </div>
+
+          <div v-if="filtered.length" class="product-grid">
+            <ProductCard
+              v-for="product in filtered"
+              :key="product.id"
+              :product="product"
+            />
+          </div>
+
+          <!-- Empty state -->
+          <div v-else class="empty-state">
+            <v-icon size="56" style="color: var(--color-muted-light);">mdi-package-variant</v-icon>
+            <h3 class="empty-title">No products found</h3>
+            <p class="empty-sub">Try adjusting your search or filters.</p>
+            <button class="btn-primary" @click="clearFilters">Clear filters</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile filter drawer -->
+    <Transition name="drawer">
+      <div v-if="mobileFilterOpen" class="mobile-drawer-overlay" @click.self="mobileFilterOpen = false">
+        <div class="mobile-drawer">
+          <div class="mobile-drawer-head">
+            <span class="filters-title">Filters</span>
+            <button class="drawer-close" @click="mobileFilterOpen = false">
+              <v-icon size="20">mdi-close</v-icon>
+            </button>
+          </div>
+
+          <div class="filter-group">
+            <h4 class="filter-group-label">Category</h4>
+            <div class="filter-options">
+              <label
+                v-for="cat in categories"
+                :key="cat"
+                class="filter-chip"
+                :class="{ 'filter-chip--active': selectedCategories.includes(cat) }"
+              >
+                <input type="checkbox" :checked="selectedCategories.includes(cat)" @change="toggleCategory(cat)" class="sr-only" />
+                {{ cat }}
+              </label>
             </div>
           </div>
 
-          <v-btn
-            block
-            size="large"
-            style="border-radius: 0; background: white; color: black; font-weight: 700; text-transform: uppercase; border: 2px solid black;"
-            @click="clearFilters"
-          >
-            CLEAR FILTERS
-          </v-btn>
-        </div>
-      </v-col>
+          <div class="filter-group">
+            <h4 class="filter-group-label">
+              Price
+              <span class="filter-group-range">${{ priceRange[0] }} – ${{ priceRange[1] }}</span>
+            </h4>
+            <v-range-slider v-model="priceRange" :min="0" :max="150" :step="5" color="primary" track-color="#E8DFD3" hide-details class="price-slider" />
+          </div>
 
-      <!-- Products Grid -->
-      <v-col cols="12" md="9">
-        <!-- Results count -->
-        <div class="pa-4 mb-5 d-flex align-center justify-space-between" style="border: 2px solid black; background: white;">
-          <p class="text-body-2 mb-0" style="color: black; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
-            SHOWING <span class="font-weight-bold">{{ placeholderProducts.length }}</span> PRODUCTS
-          </p>
-          <div class="pa-2 px-3" style="border: 2px solid black; background: white;">
-            <span style="color: black; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.75rem;">IN STOCK</span>
+          <div class="mobile-drawer-footer">
+            <button class="btn-ghost" @click="clearFilters">Clear</button>
+            <button class="btn-primary" @click="mobileFilterOpen = false">Show {{ filtered.length }} results</button>
           </div>
         </div>
-
-        <!-- Grid View -->
-        <v-row v-if="viewMode === 'grid'">
-          <v-col
-            v-for="product in placeholderProducts"
-            :key="product.id"
-            cols="12"
-            sm="6"
-            lg="4"
-          >
-            <router-link 
-              :to="`/products/${product.id}`"
-              class="text-decoration-none"
-            >
-              <div class="h-100" style="border: 3px solid black; background: white; box-shadow: 6px 6px 0 black;">
-                <div class="position-relative">
-                  <v-img
-                    :src="product.image"
-                    height="240"
-                    cover
-                  >
-                    <template v-slot:placeholder>
-                      <div class="d-flex align-center justify-center fill-height" style="background: #f0f0f0;">
-                        <v-icon size="64" style="color: black; opacity: 0.2;">mdi-cube-outline</v-icon>
-                      </div>
-                    </template>
-                  </v-img>
-                  
-                  <!-- Category badge -->
-                  <div
-                    class="pa-2 px-3"
-                    style="position: absolute; top: 12px; left: 12px; background: white; border: 2px solid black; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.688rem;"
-                  >
-                    {{ product.category }}
-                  </div>
-                </div>
-                
-                <div class="pa-5" style="border-top: 3px solid black;">
-                  <h3 class="text-subtitle-1 font-weight-bold mb-2" style="color: black; font-family: var(--font-display); line-height: 1.3; text-transform: uppercase; letter-spacing: 1px;">
-                    {{ product.name }}
-                  </h3>
-                  
-                  <div class="d-flex align-center justify-space-between mb-4">
-                    <div class="text-h6 font-weight-bold" style="color: black;">
-                      ${{ product.price }}
-                    </div>
-                    <div class="pa-1 px-2" style="border: 2px solid black; background: white;">
-                      <span style="color: black; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 0.625rem;">READY</span>
-                    </div>
-                  </div>
-                  
-                  <v-btn
-                    block
-                    style="border-radius: 0; background: black; color: white; font-weight: 700; text-transform: uppercase; border: 2px solid black;"
-                  >
-                    ADD TO CART
-                  </v-btn>
-                </div>
-              </div>
-            </router-link>
-          </v-col>
-        </v-row>
-
-        <!-- List View -->
-        <div v-else class="d-flex flex-column ga-3">
-          <v-hover v-slot="{ isHovering, props }" v-for="product in placeholderProducts" :key="product.id">
-            <v-card
-              v-bind="props"
-              :to="`/products/${product.id}`"
-              rounded="xl"
-              :elevation="isHovering ? 4 : 1"
-            >
-              <div class="d-flex">
-                <v-img
-                  :src="product.image"
-                  width="140"
-                  height="140"
-                  cover
-                  class="bg-surface-variant flex-shrink-0 rounded-s-xl"
-                >
-                  <template v-slot:placeholder>
-                    <div class="d-flex align-center justify-center fill-height">
-                      <v-icon size="32" color="primary" style="opacity: 0.3;">mdi-cube-outline</v-icon>
-                    </div>
-                  </template>
-                </v-img>
-                <v-card-text class="d-flex flex-column justify-center py-4">
-                  <v-chip size="x-small" color="primary" variant="tonal" class="align-self-start mb-2">
-                    {{ product.category }}
-                  </v-chip>
-                  <h3 class="text-subtitle-1 font-weight-semibold mb-1">{{ product.name }}</h3>
-                  <p class="text-h6 font-weight-bold text-primary mb-0">${{ product.price }}</p>
-                </v-card-text>
-                <div class="d-flex align-center pr-4">
-                  <v-btn
-                    color="primary"
-                    variant="flat"
-                    rounded="lg"
-                    size="small"
-                  >
-                    <v-icon start size="16">mdi-cart-plus</v-icon>
-                    Add
-                  </v-btn>
-                </div>
-              </div>
-            </v-card>
-          </v-hover>
-        </div>
-
-        <!-- Empty State -->
-        <v-card
-          v-if="placeholderProducts.length === 0"
-          variant="flat"
-          class="text-center py-16 bg-transparent"
-        >
-          <v-icon icon="mdi-package-variant-closed" size="80" color="grey-lighten-1" class="mb-4"></v-icon>
-          <h3 class="text-h6 font-weight-medium mb-2">No products found</h3>
-          <p class="text-body-2 text-medium-emphasis mb-4">Try adjusting your filters or search terms</p>
-          <v-btn variant="tonal" color="primary" @click="clearFilters">
-            Clear Filters
-          </v-btn>
-        </v-card>
-        </v-col>
-      </v-row>
-
-    <!-- Mobile Filters Drawer -->
-    <v-navigation-drawer
-      v-model="drawer"
-      location="right"
-      temporary
-      width="320"
-    >
-      <div class="d-flex align-center justify-space-between pa-4">
-        <span class="text-h6 font-weight-bold">Filters</span>
-        <v-btn icon variant="text" size="small" @click="drawer = false">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
       </div>
-      <v-divider></v-divider>
-      <div class="pa-4">
-        <!-- Categories -->
-        <div class="mb-6">
-          <p class="text-body-2 font-weight-bold text-uppercase mb-3" style="letter-spacing: 0.5px;">
-            Category
-          </p>
-          <v-checkbox
-            v-for="category in categories"
-            :key="category"
-            v-model="selectedCategories"
-            :label="category"
-            :value="category"
-            density="comfortable"
-            hide-details
-            color="primary"
-          ></v-checkbox>
-        </div>
-
-        <!-- Price Range -->
-        <div class="mb-6">
-          <p class="text-body-2 font-weight-bold text-uppercase mb-3" style="letter-spacing: 0.5px;">
-            Price Range
-          </p>
-          <v-range-slider
-            v-model="priceRange"
-            :min="0"
-            :max="100"
-            :step="5"
-            thumb-label="always"
-            color="primary"
-            hide-details
-            class="mt-6"
-          ></v-range-slider>
-          <div class="d-flex justify-space-between text-body-2 font-weight-medium mt-2">
-            <v-chip size="small" color="primary" variant="tonal">${{ priceRange[0] }}</v-chip>
-            <v-chip size="small" color="primary" variant="tonal">${{ priceRange[1] }}</v-chip>
-          </div>
-        </div>
-
-        <v-btn
-          variant="tonal"
-          color="primary"
-          block
-          rounded="lg"
-          @click="clearFilters"
-        >
-          <v-icon start>mdi-refresh</v-icon>
-          Clear Filters
-        </v-btn>
-      </div>
-    </v-navigation-drawer>
-    </v-container>
+    </Transition>
   </div>
 </template>
 
 <style scoped>
 .products-page {
   min-height: 100vh;
-  padding-top: 72px;
+  background: var(--color-cream);
+  padding-top: 64px;
 }
 
-.section-badge {
-  border: 1px solid rgba(6, 182, 212, 0.2);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
 }
 
-.search-wrapper {
-  animation: fadeIn 0.6s ease-out;
+/* Page header */
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 40px 0 32px;
+  border-bottom: 1px solid var(--color-divider);
+  margin-bottom: 32px;
 }
 
-.search-field :deep(.v-field) {
-  box-shadow: none !important;
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+.bc-link {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  text-decoration: none;
+}
+.bc-link:hover { color: var(--color-terracotta); }
+.bc-sep { color: var(--color-muted-light); }
+.bc-current {
+  font-size: 0.8rem;
+  color: var(--color-ink);
+  font-weight: 500;
 }
 
-.search-field :deep(.v-field):hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+.page-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  font-weight: 700;
+  color: var(--color-ink);
+  letter-spacing: -0.03em;
+  margin: 0 0 4px;
+}
+.page-sub {
+  font-size: 0.875rem;
+  color: var(--color-muted);
+  margin: 0;
 }
 
-.view-toggle {
-  animation: fadeIn 0.6s ease-out 0.1s backwards;
+/* Controls */
+.page-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
 }
 
-.view-toggle-group :deep(.v-btn) {
-  border: none;
+.search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.search-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--color-muted-light);
+  pointer-events: none;
+}
+.search-input {
+  padding: 9px 14px 9px 36px;
+  border: 1.5px solid var(--color-divider);
+  border-radius: var(--radius-lg);
+  background: #fff;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: var(--color-ink);
+  outline: none;
+  width: 220px;
+  transition: border-color var(--duration-fast);
+}
+.search-input::placeholder { color: var(--color-muted-light); }
+.search-input:focus { border-color: var(--color-terracotta); }
+
+.sort-select {
+  padding: 9px 14px;
+  border: 1.5px solid var(--color-divider);
+  border-radius: var(--radius-lg);
+  background: #fff;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: var(--color-ink);
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238C7B6B' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+  transition: border-color var(--duration-fast);
+}
+.sort-select:focus { border-color: var(--color-terracotta); }
+
+.filter-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border: 1.5px solid var(--color-divider);
+  border-radius: var(--radius-lg);
+  background: #fff;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-ink);
+  cursor: pointer;
+  position: relative;
+}
+.filter-badge {
+  width: 18px;
+  height: 18px;
+  background: var(--color-terracotta);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Filters Sidebar */
+/* Layout */
+.products-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  padding-bottom: 64px;
+}
+@media (min-width: 768px) {
+  .products-layout { grid-template-columns: 220px 1fr; }
+}
+@media (min-width: 1024px) {
+  .products-layout { grid-template-columns: 240px 1fr; }
+}
+
+/* Sidebar */
 .filters-sidebar {
-  animation: fadeIn 0.6s ease-out 0.2s backwards;
-}
-
-.sticky-filter {
+  flex-direction: column;
+  gap: 28px;
   position: sticky;
   top: 88px;
+  align-self: start;
 }
 
-.filter-section {
-  animation: fadeIn 0.6s ease-out backwards;
+.filters-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
-
-.custom-checkbox :deep(.v-selection-control__wrapper) {
-  transition: transform 0.2s ease;
-}
-
-.custom-checkbox:hover :deep(.v-selection-control__wrapper) {
-  transform: scale(1.05);
-}
-
-.price-badge {
-  flex: 1;
-  text-align: center;
-  border: 1px solid rgba(203, 213, 225, 0.2);
-}
-
-.clear-btn:hover {
-  background: linear-gradient(135deg, #f43f5e25, #a855f725) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(244, 63, 94, 0.2) !important;
-}
-
-/* Results Bar */
-.results-bar {
-  animation: slideDown 0.6s ease-out;
-  border: 1px solid rgba(203, 213, 225, 0.2);
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Product Cards */
-.product-card {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: fadeInUp 0.6s ease-out backwards;
-  overflow: hidden;
-  cursor: pointer;
-  border-radius: 24px;
-}
-
-.product-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.15) !important;
-}
-
-.product-image-wrapper {
-  overflow: hidden;
-  border-radius: 24px 24px 0 0;
-}
-
-.product-image-container {
-  position: relative;
-  overflow: hidden;
-}
-
-.product-image {
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.product-card:hover .product-image {
-  transform: scale(1.1);
-}
-
-.category-badge {
-  backdrop-filter: blur(12px);
-  transition: all 0.3s ease;
-}
-
-.product-card:hover .category-badge {
-  transform: translateX(4px) scale(1.05);
-}
-
-.quick-actions {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  opacity: 0;
-  transform: translateX(10px);
-  transition: all 0.3s ease;
-}
-
-.product-card:hover .quick-actions {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.quick-actions .v-btn {
-  backdrop-filter: blur(12px);
-}
-
-.product-content {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-}
-
-.add-to-cart-btn {
-  transition: all 0.3s ease;
-}
-
-.add-to-cart-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(6, 182, 212, 0.45) !important;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-/* List view styles */
-.list-view-card {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.list-view-card:hover {
-  transform: translateX(8px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12) !important;
-}
-
-/* Mobile drawer */
-:deep(.v-navigation-drawer) {
-  border-left: 1px solid rgba(203, 213, 225, 0.2);
-}
-
-.search-field :deep(.v-field) {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-.sticky-filter {
-  position: sticky;
-  top: 80px;
-  border: 1px solid rgba(var(--v-border-color), 0.08);
-}
-
-.product-card {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-  border: 1px solid rgba(var(--v-border-color), 0.08);
-}
-
-.product-card:hover {
-  border-color: rgb(var(--v-theme-primary));
-}
-
-.image-container {
-  position: relative;
-  overflow: hidden;
-  background: rgb(var(--v-theme-surface-variant));
-}
-
-.product-image {
-  background: rgb(var(--v-theme-surface-variant));
-}
-
-.image-zoom {
-  transform: scale(1.08);
-  transition: transform 0.5s ease;
-}
-
-.category-chip {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  font-size: 0.7rem;
+.filters-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
   font-weight: 700;
-  letter-spacing: 0.5px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  color: var(--color-ink);
+  letter-spacing: -0.02em;
 }
-
-.v-btn {
-  text-transform: none;
+.filters-clear {
+  font-size: 0.8rem;
   font-weight: 600;
+  color: var(--color-terracotta);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.filter-group { display: flex; flex-direction: column; gap: 12px; }
+.filter-group-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+}
+.filter-group-range {
+  font-weight: 600;
+  color: var(--color-ink);
   letter-spacing: 0;
+  text-transform: none;
+  font-size: 0.8rem;
 }
 
-/* Checkbox styling */
-:deep(.v-checkbox .v-selection-control) {
-  min-height: 32px;
+.filter-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--color-divider);
+  background: #fff;
+  font-size: 0.83rem;
+  font-weight: 500;
+  color: var(--color-ink);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color var(--duration-fast), background var(--duration-fast), color var(--duration-fast);
+}
+.filter-chip:hover { border-color: var(--color-muted-light); }
+.filter-chip--active {
+  border-color: var(--color-terracotta);
+  background: rgba(184,92,56,0.07);
+  color: var(--color-terracotta);
+  font-weight: 600;
 }
 
-/* Range slider styling */
-:deep(.v-slider-thumb__label) {
-  background: rgb(var(--v-theme-primary)) !important;
+.price-slider {
+  margin: 0 4px;
+}
+
+/* Active filters row */
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.active-filters-label {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  font-weight: 500;
+}
+.filter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: rgba(184,92,56,0.08);
+  border: 1px solid rgba(184,92,56,0.2);
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-terracotta);
+}
+.filter-tag-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-terracotta);
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+.clear-link {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+/* Grid */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+@media (min-width: 768px)  { .product-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1200px) { .product-grid { grid-template-columns: repeat(4, 1fr); } }
+
+/* Empty state */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 80px 24px;
+  text-align: center;
+}
+.empty-title {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  margin: 0;
+}
+.empty-sub {
+  font-size: 0.9rem;
+  color: var(--color-muted);
+  margin: 0 0 8px;
+}
+
+/* Buttons */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 22px;
+  background: var(--color-terracotta);
+  color: #fff;
+  border-radius: var(--radius-lg);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--duration-fast);
+}
+.btn-primary:hover { background: var(--color-terra-dark); }
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 22px;
+  background: #fff;
+  color: var(--color-ink);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1.5px solid var(--color-divider);
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color var(--duration-fast);
+}
+.btn-ghost:hover { border-color: var(--color-muted-light); }
+
+/* Mobile Drawer */
+.mobile-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26,15,10,0.5);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+}
+.mobile-drawer {
+  background: var(--color-cream);
+  border-radius: 20px 20px 0 0;
+  padding: 24px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.mobile-drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.drawer-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-muted);
+  display: flex;
+  padding: 4px;
+}
+.mobile-drawer-footer {
+  display: flex;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-divider);
+}
+.mobile-drawer-footer .btn-ghost,
+.mobile-drawer-footer .btn-primary {
+  flex: 1;
+  justify-content: center;
+}
+
+/* Drawer animation */
+.drawer-enter-active,
+.drawer-leave-active { transition: opacity var(--duration-base) var(--ease-out); }
+.drawer-enter-active .mobile-drawer,
+.drawer-leave-active .mobile-drawer { transition: transform var(--duration-base) var(--ease-out); }
+.drawer-enter-from,
+.drawer-leave-to { opacity: 0; }
+.drawer-enter-from .mobile-drawer,
+.drawer-leave-to .mobile-drawer { transform: translateY(100%); }
+
+/* Utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border-width: 0;
 }
 </style>

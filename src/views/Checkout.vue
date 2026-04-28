@@ -1,472 +1,678 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
 
+const router = useRouter()
 const cartStore = useCartStore()
 
 const currentStep = ref(1)
-const isProcessing = ref(false)
+const orderPlaced = ref(false)
 
-const shippingInfo = ref({
-  firstName: '',
-  lastName: '',
-  email: '',
-  phone: '',
-  address: '',
-  city: '',
-  country: '',
-  postalCode: ''
+const shipping = ref({
+  firstName: '', lastName: '',
+  email: '', phone: '',
+  address: '', city: '', state: '', zip: '', country: 'Saudi Arabia',
 })
 
-const paymentInfo = ref({
-  cardNumber: '',
-  cardName: '',
-  expiry: '',
-  cvv: ''
+const payment = ref({
+  cardNumber: '', cardName: '', expiry: '', cvv: '',
 })
 
-const shippingMethod = ref('standard')
+const countries = ['Saudi Arabia', 'UAE', 'Kuwait', 'Qatar', 'Bahrain', 'Egypt', 'Jordan']
 
-const shippingMethods = [
-  { id: 'standard', name: 'Standard Shipping', price: 5.99, time: '5-7 business days', icon: 'mdi-truck' },
-  { id: 'express', name: 'Express Shipping', price: 12.99, time: '2-3 business days', icon: 'mdi-truck-fast' },
-  { id: 'overnight', name: 'Overnight', price: 24.99, time: '1 business day', icon: 'mdi-lightning-bolt' }
+const subtotal = computed(() => cartStore.totalPrice)
+const shippingCost = computed(() => subtotal.value >= 50 ? 0 : 8.99)
+const total = computed(() => subtotal.value + shippingCost.value)
+
+const steps = [
+  { n: 1, label: 'Shipping' },
+  { n: 2, label: 'Payment' },
+  { n: 3, label: 'Confirm' },
 ]
 
-const selectedShippingPrice = () => {
-  return shippingMethods.find(m => m.id === shippingMethod.value)?.price || 0
+function shippingValid() {
+  const s = shipping.value
+  return s.firstName && s.lastName && s.email && s.address && s.city && s.country
+}
+
+function paymentValid() {
+  const p = payment.value
+  return p.cardNumber.replace(/\s/g, '').length === 16 && p.cardName && p.expiry && p.cvv.length >= 3
 }
 
 function nextStep() {
-  if (currentStep.value < 3) {
-    currentStep.value++
-  }
+  if (currentStep.value === 1 && shippingValid()) currentStep.value = 2
+  if (currentStep.value === 2 && paymentValid()) currentStep.value = 3
 }
 
-function prevStep() {
-  if (currentStep.value > 1) {
-    currentStep.value--
-  }
-}
-
-async function processPayment() {
-  isProcessing.value = true
-
-  // Simulate payment processing
-  await new Promise(resolve => setTimeout(resolve, 2000))
-
-  // TODO: Implement actual payment processing
-  alert('Order placed successfully!')
+function placeOrder() {
+  orderPlaced.value = true
   cartStore.clearCart()
+}
 
-  isProcessing.value = false
+function formatCard(v) {
+  const digits = v.replace(/\D/g, '').slice(0, 16)
+  return digits.replace(/(.{4})/g, '$1 ').trim()
+}
+function formatExpiry(v) {
+  const digits = v.replace(/\D/g, '').slice(0, 4)
+  if (digits.length >= 3) return digits.slice(0, 2) + '/' + digits.slice(2)
+  return digits
+}
+
+function onCardInput(e) {
+  payment.value.cardNumber = formatCard(e.target.value)
+}
+function onExpiryInput(e) {
+  payment.value.expiry = formatExpiry(e.target.value)
 }
 </script>
 
 <template>
-  <v-container class="py-6 py-md-10">
-    <h1 class="text-h4 text-md-h3 font-weight-bold mb-6 mb-md-8">Checkout</h1>
+  <div class="checkout-page">
+    <div class="container">
 
-    <!-- Progress Steps -->
-    <v-stepper
-      v-model="currentStep"
-      alt-labels
-      flat
-      class="mb-8 bg-transparent stepper-custom"
-    >
-      <v-stepper-header>
-        <v-stepper-item
-          :complete="currentStep > 1"
-          :value="1"
-          title="Shipping"
-          icon="mdi-truck"
-        ></v-stepper-item>
-        <v-divider></v-divider>
-        <v-stepper-item
-          :complete="currentStep > 2"
-          :value="2"
-          title="Payment"
-          icon="mdi-credit-card"
-        ></v-stepper-item>
-        <v-divider></v-divider>
-        <v-stepper-item
-          :value="3"
-          title="Review"
-          icon="mdi-check-circle"
-        ></v-stepper-item>
-      </v-stepper-header>
-    </v-stepper>
+      <!-- Order placed confirmation -->
+      <div v-if="orderPlaced" class="confirm-screen">
+        <div class="confirm-icon">
+          <v-icon size="40" style="color:#fff;">mdi-check</v-icon>
+        </div>
+        <h1 class="confirm-title">Order placed!</h1>
+        <p class="confirm-sub">
+          Thank you, {{ shipping.firstName }}. We'll email you at <strong>{{ shipping.email }}</strong>
+          once your order is confirmed and printing has started.
+        </p>
+        <div class="confirm-actions">
+          <router-link to="/" class="btn-primary">Back to home</router-link>
+          <router-link to="/products" class="btn-ghost">Keep shopping</router-link>
+        </div>
+      </div>
 
-    <v-row>
-      <!-- Form Steps -->
-      <v-col cols="12" lg="8">
-        <!-- Step 1: Shipping -->
-        <v-card v-if="currentStep === 1" rounded="xl" elevation="0" class="step-card">
-          <v-card-text class="pa-5 pa-md-6">
-            <h2 class="text-h6 font-weight-bold mb-5">
-              <v-icon start color="primary">mdi-map-marker</v-icon>
-              Shipping Information
-            </h2>
+      <!-- Checkout layout -->
+      <div v-else class="checkout-layout">
 
-            <v-row>
-              <v-col cols="12" sm="6">
-                <v-text-field
-                  v-model="shippingInfo.firstName"
-                  label="First Name"
-                  variant="outlined"
-                  density="comfortable"
-                  rounded="lg"
-                  required
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12" sm="6">
-                <v-text-field
-                  v-model="shippingInfo.lastName"
-                  label="Last Name"
-                  variant="outlined"
-                  density="comfortable"
-                  rounded="lg"
-                  required
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12" sm="6">
-                <v-text-field
-                  v-model="shippingInfo.email"
-                  label="Email"
-                  type="email"
-                  variant="outlined"
-                  density="comfortable"
-                  rounded="lg"
-                  required
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12" sm="6">
-                <v-text-field
-                  v-model="shippingInfo.phone"
-                  label="Phone"
-                  type="tel"
-                  variant="outlined"
-                  density="comfortable"
-                  rounded="lg"
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12">
-                <v-text-field
-                  v-model="shippingInfo.address"
-                  label="Address"
-                  variant="outlined"
-                  density="comfortable"
-                  rounded="lg"
-                  required
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12" sm="6">
-                <v-text-field
-                  v-model="shippingInfo.city"
-                  label="City"
-                  variant="outlined"
-                  density="comfortable"
-                  rounded="lg"
-                  required
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12" sm="6">
-                <v-text-field
-                  v-model="shippingInfo.postalCode"
-                  label="Postal Code"
-                  variant="outlined"
-                  density="comfortable"
-                  rounded="lg"
-                  required
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12">
-                <v-text-field
-                  v-model="shippingInfo.country"
-                  label="Country"
-                  variant="outlined"
-                  density="comfortable"
-                  rounded="lg"
-                  required
-                ></v-text-field>
-              </v-col>
-            </v-row>
+        <!-- ─── Left: steps ──────────────────────────────────────── -->
+        <div class="checkout-main">
 
-            <h3 class="text-subtitle-1 font-weight-bold mt-6 mb-4">
-              <v-icon start color="primary" size="20">mdi-truck-delivery</v-icon>
-              Shipping Method
-            </h3>
-            <v-radio-group v-model="shippingMethod" hide-details>
-              <v-card
-                v-for="method in shippingMethods"
-                :key="method.id"
-                :variant="shippingMethod === method.id ? 'tonal' : 'outlined'"
-                :color="shippingMethod === method.id ? 'primary' : undefined"
-                rounded="lg"
-                class="mb-2 shipping-method-card"
-                @click="shippingMethod = method.id"
-              >
-                <v-card-text class="d-flex align-center justify-space-between py-3 px-4">
-                  <div class="d-flex align-center">
-                    <v-radio :value="method.id" hide-details></v-radio>
-                    <v-icon :icon="method.icon" class="ml-2 mr-3" size="20"></v-icon>
-                    <div>
-                      <p class="text-body-1 font-weight-medium mb-0">{{ method.name }}</p>
-                      <p class="text-body-2 text-medium-emphasis mb-0">{{ method.time }}</p>
-                    </div>
-                  </div>
-                  <span class="text-body-1 font-weight-bold">${{ method.price }}</span>
-                </v-card-text>
-              </v-card>
-            </v-radio-group>
+          <!-- Page title -->
+          <div class="page-head">
+            <nav class="breadcrumb">
+              <router-link to="/cart" class="bc-link">Cart</router-link>
+              <v-icon size="14" class="bc-sep">mdi-chevron-right</v-icon>
+              <span class="bc-current">Checkout</span>
+            </nav>
+            <h1 class="page-title">Checkout</h1>
+          </div>
 
-            <v-btn
-              color="primary"
-              size="large"
-              block
-              rounded="lg"
-              class="mt-6 action-btn"
-              @click="nextStep"
+          <!-- Step indicator -->
+          <div class="steps-indicator">
+            <div
+              v-for="step in steps"
+              :key="step.n"
+              class="step-item"
+              :class="{
+                'step-item--active': currentStep === step.n,
+                'step-item--done': currentStep > step.n,
+              }"
             >
-              Continue to Payment
-              <v-icon end>mdi-arrow-right</v-icon>
-            </v-btn>
-          </v-card-text>
-        </v-card>
-
-        <!-- Step 2: Payment -->
-        <v-card v-if="currentStep === 2" rounded="xl" elevation="0" class="step-card">
-          <v-card-text class="pa-5 pa-md-6">
-            <h2 class="text-h6 font-weight-bold mb-5">
-              <v-icon start color="primary">mdi-credit-card</v-icon>
-              Payment Information
-            </h2>
-
-            <v-row>
-              <v-col cols="12">
-                <v-text-field
-                  v-model="paymentInfo.cardNumber"
-                  label="Card Number"
-                  placeholder="1234 5678 9012 3456"
-                  variant="outlined"
-                  density="comfortable"
-                  rounded="lg"
-                  prepend-inner-icon="mdi-credit-card-outline"
-                  required
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12">
-                <v-text-field
-                  v-model="paymentInfo.cardName"
-                  label="Name on Card"
-                  variant="outlined"
-                  density="comfortable"
-                  rounded="lg"
-                  prepend-inner-icon="mdi-account-outline"
-                  required
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12" sm="6">
-                <v-text-field
-                  v-model="paymentInfo.expiry"
-                  label="Expiry Date"
-                  placeholder="MM/YY"
-                  variant="outlined"
-                  density="comfortable"
-                  rounded="lg"
-                  prepend-inner-icon="mdi-calendar"
-                  required
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12" sm="6">
-                <v-text-field
-                  v-model="paymentInfo.cvv"
-                  label="CVV"
-                  placeholder="123"
-                  variant="outlined"
-                  density="comfortable"
-                  rounded="lg"
-                  prepend-inner-icon="mdi-lock-outline"
-                  required
-                ></v-text-field>
-              </v-col>
-            </v-row>
-
-            <v-row class="mt-4">
-              <v-col cols="6">
-                <v-btn
-                  variant="outlined"
-                  size="large"
-                  block
-                  rounded="lg"
-                  @click="prevStep"
-                >
-                  <v-icon start>mdi-arrow-left</v-icon>
-                  Back
-                </v-btn>
-              </v-col>
-              <v-col cols="6">
-                <v-btn
-                  color="primary"
-                  size="large"
-                  block
-                  rounded="lg"
-                  class="action-btn"
-                  @click="nextStep"
-                >
-                  Review Order
-                  <v-icon end>mdi-arrow-right</v-icon>
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
-
-        <!-- Step 3: Review -->
-        <v-card v-if="currentStep === 3" rounded="xl" elevation="0" class="step-card">
-          <v-card-text class="pa-5 pa-md-6">
-            <h2 class="text-h6 font-weight-bold mb-5">
-              <v-icon start color="primary">mdi-clipboard-check</v-icon>
-              Review Your Order
-            </h2>
-
-            <!-- Shipping Summary -->
-            <v-card variant="flat" rounded="lg" class="bg-grey-lighten-4 mb-4">
-              <v-card-text class="pa-4">
-                <div class="d-flex align-center mb-2">
-                  <v-icon size="18" color="primary" class="mr-2">mdi-map-marker</v-icon>
-                  <span class="text-body-2 font-weight-bold text-uppercase" style="letter-spacing: 0.5px;">Shipping To</span>
-                </div>
-                <p class="text-body-1 mb-0">
-                  {{ shippingInfo.firstName }} {{ shippingInfo.lastName }}<br />
-                  {{ shippingInfo.address }}<br />
-                  {{ shippingInfo.city }}, {{ shippingInfo.postalCode }}<br />
-                  {{ shippingInfo.country }}
-                </p>
-              </v-card-text>
-            </v-card>
-
-            <!-- Items -->
-            <v-card variant="flat" rounded="lg" class="bg-grey-lighten-4 mb-4">
-              <v-card-text class="pa-4">
-                <div class="d-flex align-center mb-3">
-                  <v-icon size="18" color="primary" class="mr-2">mdi-package-variant</v-icon>
-                  <span class="text-body-2 font-weight-bold text-uppercase" style="letter-spacing: 0.5px;">Items</span>
-                </div>
-                <div
-                  v-for="item in cartStore.items"
-                  :key="item.id"
-                  class="d-flex justify-space-between text-body-1 py-2"
-                >
-                  <span>{{ item.name }} x {{ item.quantity }}</span>
-                  <span class="font-weight-medium">${{ (item.price * item.quantity).toFixed(2) }}</span>
-                </div>
-              </v-card-text>
-            </v-card>
-
-            <v-row class="mt-6">
-              <v-col cols="6">
-                <v-btn
-                  variant="outlined"
-                  size="large"
-                  block
-                  rounded="lg"
-                  @click="prevStep"
-                >
-                  <v-icon start>mdi-arrow-left</v-icon>
-                  Back
-                </v-btn>
-              </v-col>
-              <v-col cols="6">
-                <v-btn
-                  color="primary"
-                  size="large"
-                  block
-                  rounded="lg"
-                  :loading="isProcessing"
-                  class="action-btn"
-                  @click="processPayment"
-                >
-                  <v-icon start>mdi-check</v-icon>
-                  Place Order
-                </v-btn>
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card>
-      </v-col>
-
-      <!-- Order Summary -->
-      <v-col cols="12" lg="4">
-        <v-card rounded="xl" elevation="0" class="summary-card sticky-summary">
-          <v-card-text class="pa-5">
-            <h2 class="text-h6 font-weight-bold mb-5">Order Summary</h2>
-
-            <div class="d-flex flex-column ga-2 mb-4">
-              <div
-                v-for="item in cartStore.items"
-                :key="item.id"
-                class="d-flex justify-space-between text-body-2"
-              >
-                <span class="text-medium-emphasis">{{ item.name }} x {{ item.quantity }}</span>
-                <span class="font-weight-medium">${{ (item.price * item.quantity).toFixed(2) }}</span>
-              </div>
-            </div>
-
-            <v-divider class="mb-4"></v-divider>
-
-            <div class="d-flex flex-column ga-2 text-body-1">
-              <div class="d-flex justify-space-between">
-                <span class="text-medium-emphasis">Subtotal</span>
-                <span class="font-weight-medium">${{ cartStore.totalPrice.toFixed(2) }}</span>
-              </div>
-              <div class="d-flex justify-space-between">
-                <span class="text-medium-emphasis">Shipping</span>
-                <span class="font-weight-medium">${{ selectedShippingPrice().toFixed(2) }}</span>
-              </div>
-            </div>
-
-            <v-divider class="my-4"></v-divider>
-
-            <div class="d-flex justify-space-between">
-              <span class="text-h6 font-weight-bold">Total</span>
-              <span class="text-h5 font-weight-bold text-primary">
-                ${{ (cartStore.totalPrice + selectedShippingPrice()).toFixed(2) }}
+              <span class="step-num">
+                <v-icon v-if="currentStep > step.n" size="13">mdi-check</v-icon>
+                <span v-else>{{ step.n }}</span>
               </span>
+              <span class="step-label">{{ step.label }}</span>
             </div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
+            <div class="step-connector"></div>
+          </div>
+
+          <!-- ─── Step 1: Shipping ──────────────────────────────── -->
+          <div v-if="currentStep === 1" class="step-form">
+            <h2 class="form-section-title">Shipping information</h2>
+
+            <div class="form-row form-row--2">
+              <div class="field-wrap">
+                <label class="field-label">First name *</label>
+                <input v-model="shipping.firstName" class="field-input" placeholder="Ahmed" />
+              </div>
+              <div class="field-wrap">
+                <label class="field-label">Last name *</label>
+                <input v-model="shipping.lastName" class="field-input" placeholder="Al-Rashid" />
+              </div>
+            </div>
+            <div class="form-row form-row--2">
+              <div class="field-wrap">
+                <label class="field-label">Email address *</label>
+                <input v-model="shipping.email" type="email" class="field-input" placeholder="you@example.com" />
+              </div>
+              <div class="field-wrap">
+                <label class="field-label">Phone number</label>
+                <input v-model="shipping.phone" class="field-input" placeholder="+966 50 000 0000" />
+              </div>
+            </div>
+            <div class="field-wrap">
+              <label class="field-label">Street address *</label>
+              <input v-model="shipping.address" class="field-input" placeholder="123 King Fahad Road, Apt 4B" />
+            </div>
+            <div class="form-row form-row--3">
+              <div class="field-wrap">
+                <label class="field-label">City *</label>
+                <input v-model="shipping.city" class="field-input" placeholder="Riyadh" />
+              </div>
+              <div class="field-wrap">
+                <label class="field-label">State / Province</label>
+                <input v-model="shipping.state" class="field-input" placeholder="Riyadh Region" />
+              </div>
+              <div class="field-wrap">
+                <label class="field-label">ZIP / Postal code</label>
+                <input v-model="shipping.zip" class="field-input" placeholder="11564" />
+              </div>
+            </div>
+            <div class="field-wrap">
+              <label class="field-label">Country *</label>
+              <select v-model="shipping.country" class="field-select">
+                <option v-for="c in countries" :key="c" :value="c">{{ c }}</option>
+              </select>
+            </div>
+
+            <div class="form-actions">
+              <button
+                class="btn-primary"
+                :disabled="!shippingValid()"
+                @click="nextStep"
+              >
+                Continue to payment
+                <v-icon size="16">mdi-arrow-right</v-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- ─── Step 2: Payment ───────────────────────────────── -->
+          <div v-if="currentStep === 2" class="step-form">
+            <h2 class="form-section-title">Payment details</h2>
+            <p class="form-section-sub">
+              <v-icon size="14" style="color: var(--color-muted-light);">mdi-lock-outline</v-icon>
+              All transactions are encrypted and secure.
+            </p>
+
+            <div class="field-wrap">
+              <label class="field-label">Card number *</label>
+              <div class="card-input-wrap">
+                <input
+                  :value="payment.cardNumber"
+                  @input="onCardInput"
+                  class="field-input"
+                  placeholder="1234 5678 9012 3456"
+                  maxlength="19"
+                />
+                <v-icon size="22" class="card-icon">mdi-credit-card-outline</v-icon>
+              </div>
+            </div>
+            <div class="field-wrap">
+              <label class="field-label">Name on card *</label>
+              <input v-model="payment.cardName" class="field-input" placeholder="Ahmed Al-Rashid" />
+            </div>
+            <div class="form-row form-row--2">
+              <div class="field-wrap">
+                <label class="field-label">Expiry date *</label>
+                <input
+                  :value="payment.expiry"
+                  @input="onExpiryInput"
+                  class="field-input"
+                  placeholder="MM/YY"
+                  maxlength="5"
+                />
+              </div>
+              <div class="field-wrap">
+                <label class="field-label">CVV *</label>
+                <input v-model="payment.cvv" type="password" class="field-input" placeholder="•••" maxlength="4" />
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn-ghost" @click="currentStep = 1">
+                <v-icon size="16">mdi-arrow-left</v-icon>
+                Back
+              </button>
+              <button
+                class="btn-primary"
+                :disabled="!paymentValid()"
+                @click="nextStep"
+              >
+                Review order
+                <v-icon size="16">mdi-arrow-right</v-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- ─── Step 3: Confirm ───────────────────────────────── -->
+          <div v-if="currentStep === 3" class="step-form">
+            <h2 class="form-section-title">Review your order</h2>
+
+            <div class="review-block">
+              <div class="review-block-head">
+                <span class="review-block-label">Shipping to</span>
+                <button class="review-edit" @click="currentStep = 1">Edit</button>
+              </div>
+              <p class="review-content">
+                {{ shipping.firstName }} {{ shipping.lastName }}<br />
+                {{ shipping.address }}, {{ shipping.city }}, {{ shipping.country }}
+              </p>
+            </div>
+
+            <div class="review-block">
+              <div class="review-block-head">
+                <span class="review-block-label">Payment</span>
+                <button class="review-edit" @click="currentStep = 2">Edit</button>
+              </div>
+              <p class="review-content">
+                **** **** **** {{ payment.cardNumber.replace(/\s/g, '').slice(-4) }}
+                &nbsp;·&nbsp; {{ payment.expiry }}
+              </p>
+            </div>
+
+            <div class="review-block">
+              <div class="review-block-head">
+                <span class="review-block-label">Items ({{ cartStore.itemCount }})</span>
+              </div>
+              <div class="review-items">
+                <div v-for="item in cartStore.items" :key="item.id" class="review-item">
+                  <span class="ri-name">{{ item.name }}</span>
+                  <span class="ri-qty">× {{ item.quantity }}</span>
+                  <span class="ri-price">${{ (item.price * item.quantity).toFixed(2) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn-ghost" @click="currentStep = 2">
+                <v-icon size="16">mdi-arrow-left</v-icon>
+                Back
+              </button>
+              <button class="btn-place" @click="placeOrder">
+                <v-icon size="18">mdi-check-circle-outline</v-icon>
+                Place order — ${{ total.toFixed(2) }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── Right: summary ───────────────────────────────────── -->
+        <aside class="checkout-summary">
+          <h3 class="summary-title">Order summary</h3>
+
+          <div class="summary-items">
+            <div v-for="item in cartStore.items" :key="item.id" class="s-item">
+              <div class="s-item-info">
+                <span class="s-item-name">{{ item.name }}</span>
+                <span class="s-item-qty">× {{ item.quantity }}</span>
+              </div>
+              <span class="s-item-price">${{ (item.price * item.quantity).toFixed(2) }}</span>
+            </div>
+          </div>
+
+          <div class="summary-divider"></div>
+
+          <div class="summary-lines">
+            <div class="summary-line">
+              <span>Subtotal</span>
+              <span>${{ subtotal.toFixed(2) }}</span>
+            </div>
+            <div class="summary-line">
+              <span>Shipping</span>
+              <span v-if="shippingCost === 0" class="free-label">Free</span>
+              <span v-else>${{ shippingCost.toFixed(2) }}</span>
+            </div>
+            <div class="summary-divider" style="margin: 4px 0;"></div>
+            <div class="summary-line summary-line--total">
+              <span>Total</span>
+              <span>${{ total.toFixed(2) }}</span>
+            </div>
+          </div>
+        </aside>
+
+      </div>
+    </div>
+  </div>
 </template>
 
 <style scoped>
-.stepper-custom :deep(.v-stepper-item) {
-  opacity: 1;
+.checkout-page {
+  background: var(--color-cream);
+  min-height: 100vh;
+  padding-top: 64px;
+}
+.container {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
 }
 
-.step-card {
-  border: 1px solid rgba(var(--v-border-color), 0.08);
+/* Confirmation screen */
+.confirm-screen {
+  max-width: 520px;
+  margin: 80px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+.confirm-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #27795B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(39,121,91,0.3);
+}
+.confirm-title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--color-ink);
+  letter-spacing: -0.04em;
+  margin: 0;
+}
+.confirm-sub { font-size: 0.95rem; color: var(--color-muted); line-height: 1.7; margin: 0; }
+.confirm-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 8px; }
+
+/* Layout */
+.checkout-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  align-items: start;
+}
+@media (min-width: 900px) {
+  .checkout-layout { grid-template-columns: 1fr 360px; }
 }
 
-.shipping-method-card {
-  cursor: pointer;
-  transition: all 0.2s ease;
+/* Main */
+.checkout-main { display: flex; flex-direction: column; gap: 0; }
+
+.page-head { padding: 40px 0 32px; }
+.breadcrumb { display: flex; align-items: center; gap: 4px; margin-bottom: 10px; }
+.bc-link { font-size: 0.8rem; color: var(--color-muted); text-decoration: none; }
+.bc-link:hover { color: var(--color-terracotta); }
+.bc-sep { color: var(--color-muted-light); }
+.bc-current { font-size: 0.8rem; color: var(--color-ink); font-weight: 500; }
+.page-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 700;
+  color: var(--color-ink);
+  letter-spacing: -0.03em;
+  margin: 0;
 }
 
-.summary-card {
-  background: rgb(var(--v-theme-surface-variant));
+/* Steps */
+.steps-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 40px;
+  position: relative;
+}
+.step-connector {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  right: 18px;
+  height: 2px;
+  background: var(--color-divider);
+  z-index: 0;
+}
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  z-index: 1;
+}
+.step-num {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--color-divider);
+  background: var(--color-cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-muted);
+  transition: all var(--duration-base);
+}
+.step-item--active .step-num {
+  border-color: var(--color-terracotta);
+  background: var(--color-terracotta);
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(184,92,56,0.15);
+}
+.step-item--done .step-num { border-color: #27795B; background: #27795B; color: #fff; }
+.step-label { font-size: 0.75rem; font-weight: 600; color: var(--color-muted); }
+.step-item--active .step-label { color: var(--color-terracotta); }
+.step-item--done .step-label   { color: #27795B; }
+
+/* Form */
+.step-form { display: flex; flex-direction: column; gap: 18px; }
+.form-section-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  letter-spacing: -0.02em;
+  margin: 0 0 4px;
+}
+.form-section-sub {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  margin: -10px 0 4px;
 }
 
-.sticky-summary {
-  position: sticky;
-  top: 80px;
+.form-row { display: grid; gap: 14px; }
+.form-row--2 { grid-template-columns: repeat(2, 1fr); }
+.form-row--3 { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 560px) {
+  .form-row--2,
+  .form-row--3 { grid-template-columns: 1fr; }
 }
 
-.action-btn {
-  text-transform: none;
+.field-wrap { display: flex; flex-direction: column; gap: 6px; }
+.field-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.field-input,
+.field-select {
+  padding: 10px 14px;
+  border: 1.5px solid var(--color-divider);
+  border-radius: var(--radius-lg);
+  background: #fff;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--color-ink);
+  outline: none;
+  width: 100%;
+  transition: border-color var(--duration-fast);
+}
+.field-input::placeholder { color: var(--color-muted-light); }
+.field-input:focus,
+.field-select:focus { border-color: var(--color-terracotta); }
+.field-select { appearance: none; cursor: pointer; }
+
+.card-input-wrap { position: relative; }
+.card-input-wrap .field-input { padding-right: 42px; }
+.card-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--color-muted-light); }
+
+.form-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+
+/* Review */
+.review-block {
+  background: #fff;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.review-block-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.review-block-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.review-edit {
+  font-size: 0.8rem;
   font-weight: 600;
-  letter-spacing: 0;
+  color: var(--color-terracotta);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.review-content {
+  font-size: 0.9rem;
+  color: var(--color-ink);
+  line-height: 1.6;
+  margin: 0;
+}
+.review-items { display: flex; flex-direction: column; gap: 8px; }
+.review-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: var(--color-ink);
+}
+.ri-name { flex: 1; }
+.ri-qty  { color: var(--color-muted); }
+.ri-price { font-weight: 600; }
+
+/* Summary sidebar */
+.checkout-summary {
+  background: #fff;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 88px;
+}
+.summary-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.summary-items { display: flex; flex-direction: column; gap: 10px; }
+.s-item { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.s-item-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.s-item-name { font-size: 0.85rem; color: var(--color-ink); font-weight: 500; line-height: 1.3; }
+.s-item-qty  { font-size: 0.75rem; color: var(--color-muted); }
+.s-item-price { font-size: 0.875rem; font-weight: 600; color: var(--color-ink); white-space: nowrap; }
+.summary-divider { height: 1px; background: var(--color-divider); }
+.summary-lines { display: flex; flex-direction: column; gap: 0; }
+.summary-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 0.875rem;
+  color: var(--color-muted);
+}
+.summary-line span:last-child { color: var(--color-ink); font-weight: 500; }
+.free-label { color: #27795B !important; font-weight: 700 !important; }
+.summary-line--total {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  padding-top: 10px;
+}
+.summary-line--total span:last-child {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--color-terracotta) !important;
+  letter-spacing: -0.04em;
+}
+
+/* Buttons */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: var(--color-terracotta);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-lg);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--duration-fast), transform var(--duration-fast);
+}
+.btn-primary:hover:not(:disabled) { background: var(--color-terra-dark); transform: translateY(-1px); }
+.btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #fff;
+  color: var(--color-ink);
+  border: 1.5px solid var(--color-divider);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color var(--duration-fast);
+}
+.btn-ghost:hover { border-color: var(--color-muted-light); }
+
+.btn-place {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  background: var(--color-brown);
+  color: var(--color-cream);
+  border: none;
+  border-radius: var(--radius-lg);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(61,35,20,0.25);
+  transition: background var(--duration-fast), transform var(--duration-fast);
+}
+.btn-place:hover {
+  background: var(--color-brown-light);
+  transform: translateY(-1px);
 }
 </style>
