@@ -1,22 +1,26 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import ProductCard from '@/components/common/ProductCard.vue'
 
 const route = useRoute()
+const { t } = useI18n()
+
 const mobileFilterOpen = ref(false)
 const searchQuery = ref(route.query.q || '')
 const selectedCategories = ref([])
 const priceRange = ref([0, 150])
 const sortBy = ref('featured')
 
-const categories = ['Figurines', 'Home Decor', 'Gadgets', 'Art', 'Games']
-const sortOptions = [
-  { label: 'Featured',    value: 'featured' },
-  { label: 'Newest',      value: 'newest' },
-  { label: 'Price: Low',  value: 'price-asc' },
-  { label: 'Price: High', value: 'price-desc' },
-]
+const categoryKeys = ['Figurines', 'Home Decor', 'Gadgets', 'Art', 'Games']
+
+const sortOptions = computed(() => [
+  { label: t('products.sortFeatured'), value: 'featured' },
+  { label: t('products.sortNewest'),   value: 'newest' },
+  { label: t('products.sortPriceLow'), value: 'price-asc' },
+  { label: t('products.sortPriceHigh'),value: 'price-desc' },
+])
 
 const allProducts = [
   { id: 1, name: 'Dragon Figurine',     price: 29.99, category: 'Figurines', image: '' },
@@ -66,7 +70,7 @@ function toggleCategory(cat) {
 
 onMounted(() => {
   if (route.query.category) {
-    const cat = categories.find(c => c.toLowerCase() === route.query.category)
+    const cat = categoryKeys.find(c => c.toLowerCase() === route.query.category)
     if (cat) selectedCategories.value = [cat]
   }
 })
@@ -80,12 +84,12 @@ onMounted(() => {
       <div class="page-head">
         <div>
           <nav class="breadcrumb" aria-label="Breadcrumb">
-            <router-link to="/" class="bc-link">Home</router-link>
+            <router-link to="/" class="bc-link">{{ $t('products.home') }}</router-link>
             <v-icon size="14" class="bc-sep">mdi-chevron-right</v-icon>
-            <span class="bc-current">Products</span>
+            <span class="bc-current">{{ $t('products.products') }}</span>
           </nav>
-          <h1 class="page-title">Our collection</h1>
-          <p class="page-sub">{{ filtered.length }} products ready to ship</p>
+          <h1 class="page-title">{{ $t('products.ourCollection') }}</h1>
+          <p class="page-sub">{{ $t('products.readyToShip', { count: filtered.length }) }}</p>
         </div>
 
         <!-- Search + Sort -->
@@ -94,7 +98,7 @@ onMounted(() => {
             <v-icon size="16" class="search-icon">mdi-magnify</v-icon>
             <input
               v-model="searchQuery"
-              placeholder="Search products…"
+              :placeholder="$t('products.searchPlaceholder')"
               class="search-input"
             />
           </div>
@@ -108,7 +112,7 @@ onMounted(() => {
           <!-- Mobile filter toggle -->
           <button class="filter-toggle d-md-none" @click="mobileFilterOpen = true">
             <v-icon size="18">mdi-tune-variant</v-icon>
-            Filters
+            {{ $t('products.filters') }}
             <span v-if="activeFilterCount" class="filter-badge">{{ activeFilterCount }}</span>
           </button>
         </div>
@@ -120,18 +124,18 @@ onMounted(() => {
         <!-- ─── Sidebar ───────────────────────────────────────────── -->
         <aside class="filters-sidebar d-none d-md-flex">
           <div class="filters-header">
-            <span class="filters-title">Filters</span>
+            <span class="filters-title">{{ $t('products.filters') }}</span>
             <button v-if="activeFilterCount" class="filters-clear" @click="clearFilters">
-              Clear all
+              {{ $t('products.clearAll') }}
             </button>
           </div>
 
           <!-- Category -->
           <div class="filter-group">
-            <h4 class="filter-group-label">Category</h4>
+            <h4 class="filter-group-label">{{ $t('products.category') }}</h4>
             <div class="filter-options">
               <label
-                v-for="cat in categories"
+                v-for="cat in categoryKeys"
                 :key="cat"
                 class="filter-chip"
                 :class="{ 'filter-chip--active': selectedCategories.includes(cat) }"
@@ -142,7 +146,7 @@ onMounted(() => {
                   @change="toggleCategory(cat)"
                   class="sr-only"
                 />
-                {{ cat }}
+                {{ $t(`products.categories.${cat}`) }}
               </label>
             </div>
           </div>
@@ -150,7 +154,7 @@ onMounted(() => {
           <!-- Price -->
           <div class="filter-group">
             <h4 class="filter-group-label">
-              Price
+              {{ $t('products.price') }}
               <span class="filter-group-range">${{ priceRange[0] }} – ${{ priceRange[1] }}</span>
             </h4>
             <v-range-slider
@@ -170,18 +174,18 @@ onMounted(() => {
         <div class="products-col">
           <!-- Results info -->
           <div v-if="activeFilterCount" class="active-filters">
-            <span class="active-filters-label">Active filters:</span>
+            <span class="active-filters-label">{{ $t('products.activeFilters') }}</span>
             <span
               v-for="cat in selectedCategories"
               :key="cat"
               class="filter-tag"
             >
-              {{ cat }}
+              {{ $t(`products.categories.${cat}`) }}
               <button @click="toggleCategory(cat)" class="filter-tag-remove">
                 <v-icon size="12">mdi-close</v-icon>
               </button>
             </span>
-            <button class="clear-link" @click="clearFilters">Clear all</button>
+            <button class="clear-link" @click="clearFilters">{{ $t('products.clearAll') }}</button>
           </div>
 
           <div v-if="filtered.length" class="product-grid">
@@ -195,9 +199,9 @@ onMounted(() => {
           <!-- Empty state -->
           <div v-else class="empty-state">
             <v-icon size="56" style="color: var(--color-muted-light);">mdi-package-variant</v-icon>
-            <h3 class="empty-title">No products found</h3>
-            <p class="empty-sub">Try adjusting your search or filters.</p>
-            <button class="btn-primary" @click="clearFilters">Clear filters</button>
+            <h3 class="empty-title">{{ $t('products.noProducts') }}</h3>
+            <p class="empty-sub">{{ $t('products.noProductsSub') }}</p>
+            <button class="btn-primary" @click="clearFilters">{{ $t('products.clearFilters') }}</button>
           </div>
         </div>
       </div>
@@ -208,38 +212,40 @@ onMounted(() => {
       <div v-if="mobileFilterOpen" class="mobile-drawer-overlay" @click.self="mobileFilterOpen = false">
         <div class="mobile-drawer">
           <div class="mobile-drawer-head">
-            <span class="filters-title">Filters</span>
+            <span class="filters-title">{{ $t('products.filters') }}</span>
             <button class="drawer-close" @click="mobileFilterOpen = false">
               <v-icon size="20">mdi-close</v-icon>
             </button>
           </div>
 
           <div class="filter-group">
-            <h4 class="filter-group-label">Category</h4>
+            <h4 class="filter-group-label">{{ $t('products.category') }}</h4>
             <div class="filter-options">
               <label
-                v-for="cat in categories"
+                v-for="cat in categoryKeys"
                 :key="cat"
                 class="filter-chip"
                 :class="{ 'filter-chip--active': selectedCategories.includes(cat) }"
               >
                 <input type="checkbox" :checked="selectedCategories.includes(cat)" @change="toggleCategory(cat)" class="sr-only" />
-                {{ cat }}
+                {{ $t(`products.categories.${cat}`) }}
               </label>
             </div>
           </div>
 
           <div class="filter-group">
             <h4 class="filter-group-label">
-              Price
+              {{ $t('products.price') }}
               <span class="filter-group-range">${{ priceRange[0] }} – ${{ priceRange[1] }}</span>
             </h4>
             <v-range-slider v-model="priceRange" :min="0" :max="150" :step="5" color="primary" track-color="#E8DFD3" hide-details class="price-slider" />
           </div>
 
           <div class="mobile-drawer-footer">
-            <button class="btn-ghost" @click="clearFilters">Clear</button>
-            <button class="btn-primary" @click="mobileFilterOpen = false">Show {{ filtered.length }} results</button>
+            <button class="btn-ghost" @click="clearFilters">{{ $t('products.clearAll') }}</button>
+            <button class="btn-primary" @click="mobileFilterOpen = false">
+              {{ $t('products.showResults', { count: filtered.length }) }}
+            </button>
           </div>
         </div>
       </div>
@@ -320,7 +326,7 @@ onMounted(() => {
 }
 .search-icon {
   position: absolute;
-  left: 12px;
+  inset-inline-start: 12px;
   color: var(--color-muted-light);
   pointer-events: none;
 }
@@ -338,6 +344,10 @@ onMounted(() => {
 }
 .search-input::placeholder { color: var(--color-muted-light); }
 .search-input:focus { border-color: var(--color-terracotta); }
+
+[dir="rtl"] .search-input {
+  padding: 9px 36px 9px 14px;
+}
 
 .sort-select {
   padding: 9px 14px;

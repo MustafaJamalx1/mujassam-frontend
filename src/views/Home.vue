@@ -1,39 +1,49 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import ProductCard from '@/components/common/ProductCard.vue'
 
-const categories = [
-  { name: 'Figurines',   image: '/images/categories/figurines.jpg',  count: 24, color: '#E8D5C4' },
-  { name: 'Home Decor',  image: '/images/categories/decor.jpg',      count: 18, color: '#D4C5B2' },
-  { name: 'Gadgets',     image: '/images/categories/gadgets.jpg',    count: 32, color: '#C9B8A8' },
-  { name: 'Art',         image: '/images/categories/art.jpg',        count: 15, color: '#DDD0C4' },
+const { t } = useI18n()
+
+const categoriesRaw = [
+  { key: 'Figurines', image: '/images/categories/figurines.jpg', count: 24, color: '#E8D5C4' },
+  { key: 'Home Decor', image: '/images/categories/decor.jpg',   count: 18, color: '#D4C5B2' },
+  { key: 'Gadgets',    image: '/images/categories/gadgets.jpg', count: 32, color: '#C9B8A8' },
+  { key: 'Art',        image: '/images/categories/art.jpg',     count: 15, color: '#DDD0C4' },
 ]
 
-const steps = [
+const categories = computed(() =>
+  categoriesRaw.map(c => ({
+    ...c,
+    name: t(`home.categories.${c.key}`),
+  }))
+)
+
+const steps = computed(() => [
   {
     number: '01',
-    title: 'Upload your file',
-    desc: 'Send us your STL, OBJ, or 3MF file. We support all major 3D model formats.',
+    title: t('home.steps.upload.title'),
+    desc: t('home.steps.upload.desc'),
     icon: 'mdi-upload-outline',
   },
   {
     number: '02',
-    title: 'We review & quote',
-    desc: 'Our team checks your file for printability and sends you an instant price estimate.',
+    title: t('home.steps.review.title'),
+    desc: t('home.steps.review.desc'),
     icon: 'mdi-file-check-outline',
   },
   {
     number: '03',
-    title: 'Receive your print',
-    desc: 'We print, quality-check, and ship your object directly to your door.',
+    title: t('home.steps.receive.title'),
+    desc: t('home.steps.receive.desc'),
     icon: 'mdi-package-variant-closed',
   },
-]
+])
 
 const stats = ref([
-  { value: 0, target: 5000, label: 'Prints delivered',   suffix: '+' },
-  { value: 0, target: 98,   label: 'Satisfaction rate',  suffix: '%' },
-  { value: 0, target: 24,   label: 'Hour turnaround',    suffix: 'h' },
+  { value: 0, target: 5000, labelKey: 'home.stats.prints',        suffix: '+' },
+  { value: 0, target: 98,   labelKey: 'home.stats.satisfaction',  suffix: '%' },
+  { value: 0, target: 24,   labelKey: 'home.stats.turnaround',    suffix: 'h' },
 ])
 
 const featuredProducts = [
@@ -67,26 +77,22 @@ onMounted(() => {
       <div class="hero-noise" aria-hidden="true"></div>
       <div class="hero-inner">
         <div class="hero-content">
-          <span class="section-label">Premium 3D Printing Studio</span>
+          <span class="section-label">{{ $t('home.sectionLabel') }}</span>
 
           <h1 class="hero-title">
-            Bring your ideas<br />
-            <em>into the world.</em>
+            {{ $t('home.heroTitle') }}<br />
+            <em>{{ $t('home.heroTitleItalic') }}</em>
           </h1>
 
-          <p class="hero-body">
-            From a digital file to a finished object in your hands.
-            High-resolution 3D printing with expert guidance,
-            fast turnaround, and no minimum orders.
-          </p>
+          <p class="hero-body">{{ $t('home.heroBody') }}</p>
 
           <div class="hero-ctas">
             <router-link to="/upload" class="btn-primary">
               <v-icon size="18" class="btn-icon">mdi-upload-outline</v-icon>
-              Upload a design
+              {{ $t('home.uploadDesign') }}
             </router-link>
             <router-link to="/products" class="btn-ghost">
-              Browse the shop
+              {{ $t('home.browseShop') }}
             </router-link>
           </div>
 
@@ -94,15 +100,15 @@ onMounted(() => {
           <div class="hero-trust">
             <span class="trust-pill">
               <v-icon size="14">mdi-shield-check-outline</v-icon>
-              Quality guaranteed
+              {{ $t('home.qualityGuaranteed') }}
             </span>
             <span class="trust-pill">
               <v-icon size="14">mdi-truck-outline</v-icon>
-              Free shipping
+              {{ $t('home.freeShipping') }}
             </span>
             <span class="trust-pill">
               <v-icon size="14">mdi-clock-outline</v-icon>
-              24h turnaround
+              {{ $t('home.turnaround') }}
             </span>
           </div>
         </div>
@@ -112,7 +118,7 @@ onMounted(() => {
           <div class="hero-card hero-card--back"></div>
           <div class="hero-card hero-card--front">
             <v-icon size="72" style="color: var(--color-terracotta); opacity:0.7;">mdi-cube-scan</v-icon>
-            <span class="hero-card-label">Ready to print</span>
+            <span class="hero-card-label">{{ $t('home.readyToPrint') }}</span>
           </div>
         </div>
       </div>
@@ -121,9 +127,9 @@ onMounted(() => {
     <!-- ─── Stats ─────────────────────────────────────────────────── -->
     <section class="stats-bar">
       <div class="stats-inner">
-        <div v-for="stat in stats" :key="stat.label" class="stat-item">
+        <div v-for="stat in stats" :key="stat.labelKey" class="stat-item">
           <span class="stat-number">{{ Math.floor(stat.value) }}{{ stat.suffix }}</span>
-          <span class="stat-label">{{ stat.label }}</span>
+          <span class="stat-label">{{ $t(stat.labelKey) }}</span>
         </div>
       </div>
     </section>
@@ -133,11 +139,11 @@ onMounted(() => {
       <div class="container">
         <div class="section-header">
           <div>
-            <span class="section-label">Explore</span>
-            <h2 class="section-title">Shop by category</h2>
+            <span class="section-label">{{ $t('home.exploreLabel') }}</span>
+            <h2 class="section-title">{{ $t('home.shopByCategory') }}</h2>
           </div>
           <router-link to="/products" class="section-more">
-            View all products
+            {{ $t('home.viewAll') }}
             <v-icon size="16">mdi-arrow-right</v-icon>
           </router-link>
         </div>
@@ -145,8 +151,8 @@ onMounted(() => {
         <div class="categories-grid">
           <router-link
             v-for="cat in categories"
-            :key="cat.name"
-            :to="`/products?category=${cat.name.toLowerCase()}`"
+            :key="cat.key"
+            :to="`/products?category=${cat.key.toLowerCase()}`"
             class="category-card"
           >
             <div class="category-image" :style="{ background: cat.color }">
@@ -161,7 +167,7 @@ onMounted(() => {
             </div>
             <div class="category-info">
               <span class="category-name">{{ cat.name }}</span>
-              <span class="category-count">{{ cat.count }} items</span>
+              <span class="category-count">{{ $t('home.items', { count: cat.count }) }}</span>
             </div>
           </router-link>
         </div>
@@ -172,9 +178,9 @@ onMounted(() => {
     <section class="how-section section-pad">
       <div class="container">
         <div class="how-header">
-          <span class="section-label">Process</span>
-          <h2 class="section-title">How it works</h2>
-          <p class="section-sub">Three simple steps from idea to physical object.</p>
+          <span class="section-label">{{ $t('home.processLabel') }}</span>
+          <h2 class="section-title">{{ $t('home.howItWorks') }}</h2>
+          <p class="section-sub">{{ $t('home.howItWorksSub') }}</p>
         </div>
 
         <div class="steps-grid">
@@ -198,11 +204,11 @@ onMounted(() => {
       <div class="container">
         <div class="section-header">
           <div>
-            <span class="section-label">Featured</span>
-            <h2 class="section-title">Ready to order</h2>
+            <span class="section-label">{{ $t('home.featuredLabel') }}</span>
+            <h2 class="section-title">{{ $t('home.readyToOrder') }}</h2>
           </div>
           <router-link to="/products" class="section-more">
-            See full catalogue
+            {{ $t('home.seeCatalogue') }}
             <v-icon size="16">mdi-arrow-right</v-icon>
           </router-link>
         </div>
@@ -220,19 +226,16 @@ onMounted(() => {
     <!-- ─── CTA ───────────────────────────────────────────────────── -->
     <section class="cta-section">
       <div class="cta-inner">
-        <span class="section-label" style="color: var(--color-gold-light);">Custom order</span>
-        <h2 class="cta-title">Have a design in mind?</h2>
-        <p class="cta-body">
-          Upload your 3D file and we'll get back to you with a quote within the hour.
-          No file? Our team can help you model it.
-        </p>
+        <span class="section-label" style="color: var(--color-gold-light);">{{ $t('home.ctaLabel') }}</span>
+        <h2 class="cta-title">{{ $t('home.ctaTitle') }}</h2>
+        <p class="cta-body">{{ $t('home.ctaBody') }}</p>
         <div class="cta-actions">
           <router-link to="/upload" class="cta-btn-primary">
             <v-icon size="18" class="btn-icon">mdi-upload-outline</v-icon>
-            Upload your design
+            {{ $t('home.uploadYourDesign') }}
           </router-link>
           <a href="mailto:hello@mujassam.com" class="cta-btn-ghost">
-            Talk to us first
+            {{ $t('home.talkToUs') }}
           </a>
         </div>
       </div>
@@ -621,7 +624,7 @@ onMounted(() => {
 .step-arrow {
   position: absolute;
   top: 50%;
-  right: -18px;
+  inset-inline-end: -18px;
   transform: translateY(-50%);
   display: none;
   z-index: 1;

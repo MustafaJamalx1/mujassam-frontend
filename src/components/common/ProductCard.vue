@@ -1,5 +1,8 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { useCartStore } from '@/stores/cart'
+
+const { t } = useI18n()
 
 const props = defineProps({
   product: {
@@ -44,7 +47,7 @@ const placeholderColor = placeholderColors[(props.product.id ?? 0) % placeholder
       <div class="product-overlay">
         <button class="quick-add-btn" @click="addToCart">
           <v-icon size="16">mdi-cart-plus</v-icon>
-          Add to cart
+          {{ $t('productCard.addToCart') }}
         </button>
       </div>
     </div>
@@ -54,7 +57,7 @@ const placeholderColor = placeholderColors[(props.product.id ?? 0) % placeholder
       <h3 class="product-name">{{ product.name }}</h3>
       <div class="product-footer">
         <span class="product-price">${{ Number(product.price).toFixed(2) }}</span>
-        <span class="product-status">In stock</span>
+        <span class="product-status">{{ $t('productCard.inStock') }}</span>
       </div>
     </div>
   </router-link>

@@ -3,6 +3,7 @@
   /* Fonts */
   --font-display: 'Fraunces', Georgia, serif;
   --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-arabic: 'Cairo', 'Segoe UI', system-ui, sans-serif;
 
   /* Brand Colors */
   --color-cream:       #FAF7F2;
@@ -148,3 +149,132 @@ h1, h2, h3, h4, h5, h6 {
 ::-webkit-scrollbar-track  { background: var(--color-cream); }
 ::-webkit-scrollbar-thumb  { background: var(--color-muted-light); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-muted); }
+
+/* ─── Arabic / RTL Support ──────────────────────────────── */
+[lang="ar"],
+[dir="rtl"] {
+  --font-display: 'Cairo', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Cairo', 'Segoe UI', system-ui, sans-serif;
+}
+
+[dir="rtl"] body {
+  font-family: var(--font-arabic);
+}
+
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+[dir="rtl"] h4,
+[dir="rtl"] h5,
+[dir="rtl"] h6 {
+  font-family: var(--font-arabic);
+  letter-spacing: 0;
+}
+
+/* Hero card visual — mirror for RTL */
+[dir="rtl"] .hero-card--back {
+  right: auto;
+  left: 20px;
+  transform: rotate(-4deg);
+}
+[dir="rtl"] .hero-card--front {
+  right: auto;
+  left: 60px;
+}
+
+/* Section label line — flip for RTL */
+[dir="rtl"] .section-label::before {
+  margin-inline-end: 8px;
+  margin-inline-start: 0;
+}
+
+/* Step arrow — flip direction for RTL */
+[dir="rtl"] .step-arrow .v-icon {
+  transform: scaleX(-1);
+}
+
+/* Product category tag — flip position */
+[dir="rtl"] .product-category {
+  left: auto;
+  right: 12px;
+}
+
+/* Breadcrumb chevron — flip for RTL */
+[dir="rtl"] .bc-sep .v-icon {
+  transform: scaleX(-1);
+}
+
+/* Continue link arrow — flip for RTL */
+[dir="rtl"] .continue-link .v-icon,
+[dir="rtl"] .section-more .v-icon {
+  transform: scaleX(-1);
+}
+
+/* Sort select dropdown arrow — flip for RTL */
+[dir="rtl"] .sort-select {
+  background-position: left 12px center;
+  padding-left: 32px;
+  padding-right: 14px;
+}
+
+/* Search input icon offset — flip for RTL */
+[dir="rtl"] .search-icon {
+  left: auto;
+  right: 12px;
+}
+
+/* Back buttons — flip arrow icon for RTL */
+[dir="rtl"] .btn-ghost .v-icon,
+[dir="rtl"] .btn-back .v-icon {
+  transform: scaleX(-1);
+}
+
+/* Form action buttons order in RTL */
+[dir="rtl"] .form-actions {
+  flex-direction: row-reverse;
+}
+
+/* Cart badge position — use logical already set via inset-inline-end */
+
+/* Section label display letter-spacing reset */
+[dir="rtl"] .section-label {
+  letter-spacing: 0;
+}
+
+/* Stat label letter-spacing reset for Arabic */
+[dir="rtl"] .stat-label {
+  letter-spacing: 0;
+}
+
+/* Footer heading letter-spacing reset for Arabic */
+[dir="rtl"] .footer-heading {
+  letter-spacing: 0;
+}
+
+/* Field labels letter-spacing reset for Arabic */
+[dir="rtl"] .field-label,
+[dir="rtl"] .filter-group-label,
+[dir="rtl"] .review-block-label {
+  letter-spacing: 0;
+}
+
+/* Vuetify app font override for Arabic */
+[dir="rtl"] .v-application {
+  font-family: var(--font-arabic) !important;
+}
+[dir="rtl"] .v-btn,
+[dir="rtl"] .v-label {
+  font-family: var(--font-arabic) !important;
+  letter-spacing: 0 !important;
+}
+
+/* Step number style */
+[dir="rtl"] .step-number {
+  letter-spacing: 0;
+}
+
+/* Filter chip upper-case */
+[dir="rtl"] .filter-chip,
+[dir="rtl"] .filter-group-label {
+  text-transform: none;
+}

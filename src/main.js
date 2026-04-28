@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import pinia from './stores'
+import i18n, { applyLocaleToDocument } from './i18n'
 
 import 'vuetify/styles'
 import { createVuetify } from 'vuetify'
@@ -11,9 +12,15 @@ import '@mdi/font/css/materialdesignicons.css'
 
 import '@/styles/variables.css'
 
+const savedLocale = localStorage.getItem('mujassam-locale') || 'en'
+
 const vuetify = createVuetify({
   components,
   directives,
+  locale: {
+    locale: savedLocale,
+    rtl: { ar: true },
+  },
   defaults: {
     VCard: { elevation: 0, rounded: 'lg' },
     VBtn: { elevation: 0, rounded: 'lg' },
@@ -80,8 +87,11 @@ const vuetify = createVuetify({
   },
 })
 
+applyLocaleToDocument(savedLocale)
+
 const app = createApp(App)
 app.use(pinia)
 app.use(router)
 app.use(vuetify)
+app.use(i18n)
 app.mount('#app')

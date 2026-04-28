@@ -1,7 +1,9 @@
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useCartStore } from '@/stores/cart'
 
+const { t } = useI18n()
 const cartStore = useCartStore()
 
 const items = computed(() => cartStore.items)
@@ -21,15 +23,15 @@ const bgFor = (id) => placeholderColors[(id ?? 0) % placeholderColors.length]
       <div class="page-head">
         <div>
           <nav class="breadcrumb">
-            <router-link to="/" class="bc-link">Home</router-link>
+            <router-link to="/" class="bc-link">{{ $t('cart.home') }}</router-link>
             <v-icon size="14" class="bc-sep">mdi-chevron-right</v-icon>
-            <span class="bc-current">Cart</span>
+            <span class="bc-current">{{ $t('cart.cart') }}</span>
           </nav>
-          <h1 class="page-title">Your cart</h1>
+          <h1 class="page-title">{{ $t('cart.yourCart') }}</h1>
         </div>
         <router-link to="/products" class="continue-link">
           <v-icon size="16">mdi-arrow-left</v-icon>
-          Continue shopping
+          {{ $t('cart.continueShopping') }}
         </router-link>
       </div>
 
@@ -38,11 +40,11 @@ const bgFor = (id) => placeholderColors[(id ?? 0) % placeholderColors.length]
         <div class="empty-icon-wrap">
           <v-icon size="48" style="color: var(--color-muted-light);">mdi-shopping-outline</v-icon>
         </div>
-        <h2 class="empty-title">Your cart is empty</h2>
-        <p class="empty-sub">Add some products or upload a custom design to get started.</p>
+        <h2 class="empty-title">{{ $t('cart.emptyTitle') }}</h2>
+        <p class="empty-sub">{{ $t('cart.emptySub') }}</p>
         <div class="empty-actions">
-          <router-link to="/products" class="btn-primary">Browse products</router-link>
-          <router-link to="/upload"   class="btn-ghost">Upload a design</router-link>
+          <router-link to="/products" class="btn-primary">{{ $t('cart.browseProducts') }}</router-link>
+          <router-link to="/upload"   class="btn-ghost">{{ $t('cart.uploadDesign') }}</router-link>
         </div>
       </div>
 
@@ -52,9 +54,9 @@ const bgFor = (id) => placeholderColors[(id ?? 0) % placeholderColors.length]
         <!-- ─── Line items ───────────────────────────────────────── -->
         <div class="cart-items">
           <div class="cart-items-header">
-            <span>Product</span>
-            <span class="header-qty">Qty</span>
-            <span class="header-price">Price</span>
+            <span>{{ $t('cart.product') }}</span>
+            <span class="header-qty">{{ $t('cart.qty') }}</span>
+            <span class="header-price">{{ $t('cart.price') }}</span>
           </div>
 
           <div class="item-list">
@@ -90,7 +92,7 @@ const bgFor = (id) => placeholderColors[(id ?? 0) % placeholderColors.length]
               </div>
 
               <!-- Remove -->
-              <button class="item-remove" @click="cartStore.removeItem(item.id)" aria-label="Remove">
+              <button class="item-remove" @click="cartStore.removeItem(item.id)" :aria-label="$t('cart.remove')">
                 <v-icon size="16">mdi-close</v-icon>
               </button>
             </div>
@@ -100,48 +102,53 @@ const bgFor = (id) => placeholderColors[(id ?? 0) % placeholderColors.length]
           <div class="cart-actions">
             <button class="clear-btn" @click="cartStore.clearCart">
               <v-icon size="14">mdi-trash-can-outline</v-icon>
-              Clear cart
+              {{ $t('cart.clearCart') }}
             </button>
           </div>
         </div>
 
         <!-- ─── Order summary ─────────────────────────────────────── -->
         <aside class="order-summary">
-          <h2 class="summary-title">Order summary</h2>
+          <h2 class="summary-title">{{ $t('cart.orderSummary') }}</h2>
 
           <div class="summary-lines">
             <div class="summary-line">
-              <span>Subtotal ({{ cartStore.itemCount }} {{ cartStore.itemCount === 1 ? 'item' : 'items' }})</span>
+              <span>{{
+                $t('cart.subtotal', {
+                  count: cartStore.itemCount,
+                  itemLabel: cartStore.itemCount === 1 ? $t('cart.item') : $t('cart.items')
+                })
+              }}</span>
               <span>${{ subtotal.toFixed(2) }}</span>
             </div>
             <div class="summary-line">
-              <span>Shipping</span>
-              <span v-if="shipping === 0" class="free-label">Free</span>
+              <span>{{ $t('cart.shipping') }}</span>
+              <span v-if="shipping === 0" class="free-label">{{ $t('cart.free') }}</span>
               <span v-else>${{ shipping.toFixed(2) }}</span>
             </div>
             <div v-if="shipping > 0" class="summary-free-note">
-              Add ${{ (50 - subtotal).toFixed(2) }} more for free shipping
+              {{ $t('cart.freeShippingNote', { amount: (50 - subtotal).toFixed(2) }) }}
             </div>
             <div class="summary-divider"></div>
             <div class="summary-line summary-line--total">
-              <span>Total</span>
+              <span>{{ $t('cart.total') }}</span>
               <span>${{ total.toFixed(2) }}</span>
             </div>
           </div>
 
           <router-link to="/checkout" class="checkout-btn">
             <v-icon size="18">mdi-lock-outline</v-icon>
-            Proceed to checkout
+            {{ $t('cart.proceedCheckout') }}
           </router-link>
 
           <div class="summary-trust">
             <span class="trust-item">
               <v-icon size="14">mdi-shield-check-outline</v-icon>
-              Secure checkout
+              {{ $t('cart.secureCheckout') }}
             </span>
             <span class="trust-item">
               <v-icon size="14">mdi-credit-card-outline</v-icon>
-              All major cards
+              {{ $t('cart.allMajorCards') }}
             </span>
           </div>
         </aside>
@@ -264,7 +271,7 @@ const bgFor = (id) => placeholderColors[(id ?? 0) % placeholderColors.length]
   border-bottom: 2px solid var(--color-divider);
 }
 .header-qty  { text-align: center; }
-.header-price { text-align: right; }
+.header-price { text-align: end; }
 
 .item-list { display: flex; flex-direction: column; }
 
@@ -343,7 +350,7 @@ const bgFor = (id) => placeholderColors[(id ?? 0) % placeholderColors.length]
   font-weight: 700;
   color: var(--color-ink);
   white-space: nowrap;
-  text-align: right;
+  text-align: end;
 }
 
 .item-remove {

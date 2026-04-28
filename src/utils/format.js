@@ -1,12 +1,19 @@
+function getLocale() {
+  return localStorage.getItem('mujassam-locale') || 'en'
+}
+
 export function formatPrice(price, currency = 'USD') {
-  return new Intl.NumberFormat('en-US', {
+  const locale = getLocale() === 'ar' ? 'ar-SA' : 'en-US'
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
-    currency
+    currency,
+    minimumFractionDigits: 2,
   }).format(price)
 }
 
 export function formatDate(date, options = {}) {
-  return new Intl.DateTimeFormat('en-US', {
+  const locale = getLocale() === 'ar' ? 'ar-SA' : 'en-US'
+  return new Intl.DateTimeFormat(locale, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',

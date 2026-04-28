@@ -1,8 +1,11 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useCartStore } from '@/stores/cart'
 import ProductCard from '@/components/common/ProductCard.vue'
+
+const { t } = useI18n()
 
 const route = useRoute()
 const cartStore = useCartStore()
@@ -60,9 +63,9 @@ function addToCart() {
 
       <!-- Breadcrumb -->
       <nav class="breadcrumb">
-        <router-link to="/" class="bc-link">Home</router-link>
+        <router-link to="/" class="bc-link">{{ $t('productDetail.home') }}</router-link>
         <v-icon size="14" class="bc-sep">mdi-chevron-right</v-icon>
-        <router-link to="/products" class="bc-link">Products</router-link>
+        <router-link to="/products" class="bc-link">{{ $t('productDetail.products') }}</router-link>
         <v-icon size="14" class="bc-sep">mdi-chevron-right</v-icon>
         <span class="bc-current">{{ product.name }}</span>
       </nav>
@@ -102,7 +105,7 @@ function addToCart() {
           <!-- Material selector -->
           <div class="option-group">
             <label class="option-label">
-              Material
+              {{ $t('productDetail.material') }}
               <span class="option-selected">{{ selectedMaterial }}</span>
             </label>
             <div class="option-chips">
@@ -123,7 +126,7 @@ function addToCart() {
           <!-- Color selector -->
           <div class="option-group">
             <label class="option-label">
-              Color
+              {{ $t('productDetail.color') }}
               <span class="option-selected">{{ selectedColor }}</span>
             </label>
             <div class="option-chips">
@@ -157,7 +160,7 @@ function addToCart() {
               @click="addToCart"
             >
               <v-icon size="18">{{ addedToCart ? 'mdi-check' : 'mdi-cart-plus' }}</v-icon>
-              {{ addedToCart ? 'Added!' : 'Add to cart' }}
+              {{ addedToCart ? $t('productDetail.added') : $t('productDetail.addToCart') }}
             </button>
           </div>
 
@@ -181,7 +184,7 @@ function addToCart() {
 
       <!-- Related products -->
       <div class="related-section">
-        <h2 class="related-title">You might also like</h2>
+        <h2 class="related-title">{{ $t('productDetail.youMayAlsoLike') }}</h2>
         <div class="related-grid">
           <ProductCard
             v-for="p in relatedProducts"

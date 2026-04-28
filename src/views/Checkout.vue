@@ -1,10 +1,12 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useCartStore } from '@/stores/cart'
 
 const router = useRouter()
 const cartStore = useCartStore()
+const { t } = useI18n()
 
 const currentStep = ref(1)
 const orderPlaced = ref(false)
@@ -25,11 +27,11 @@ const subtotal = computed(() => cartStore.totalPrice)
 const shippingCost = computed(() => subtotal.value >= 50 ? 0 : 8.99)
 const total = computed(() => subtotal.value + shippingCost.value)
 
-const steps = [
-  { n: 1, label: 'Shipping' },
-  { n: 2, label: 'Payment' },
-  { n: 3, label: 'Confirm' },
-]
+const steps = computed(() => [
+  { n: 1, label: t('checkout.stepShipping') },
+  { n: 2, label: t('checkout.stepPayment') },
+  { n: 3, label: t('checkout.stepConfirm') },
+])
 
 function shippingValid() {
   const s = shipping.value
@@ -78,14 +80,11 @@ function onExpiryInput(e) {
         <div class="confirm-icon">
           <v-icon size="40" style="color:#fff;">mdi-check</v-icon>
         </div>
-        <h1 class="confirm-title">Order placed!</h1>
-        <p class="confirm-sub">
-          Thank you, {{ shipping.firstName }}. We'll email you at <strong>{{ shipping.email }}</strong>
-          once your order is confirmed and printing has started.
-        </p>
+        <h1 class="confirm-title">{{ $t('checkout.orderPlaced') }}</h1>
+        <p class="confirm-sub" v-html="$t('checkout.thankYou', { name: shipping.firstName, email: shipping.email })"></p>
         <div class="confirm-actions">
-          <router-link to="/" class="btn-primary">Back to home</router-link>
-          <router-link to="/products" class="btn-ghost">Keep shopping</router-link>
+          <router-link to="/" class="btn-primary">{{ $t('checkout.backToHome') }}</router-link>
+          <router-link to="/products" class="btn-ghost">{{ $t('checkout.keepShopping') }}</router-link>
         </div>
       </div>
 
@@ -98,11 +97,11 @@ function onExpiryInput(e) {
           <!-- Page title -->
           <div class="page-head">
             <nav class="breadcrumb">
-              <router-link to="/cart" class="bc-link">Cart</router-link>
+              <router-link to="/cart" class="bc-link">{{ $t('checkout.cart') }}</router-link>
               <v-icon size="14" class="bc-sep">mdi-chevron-right</v-icon>
-              <span class="bc-current">Checkout</span>
+              <span class="bc-current">{{ $t('checkout.checkout') }}</span>
             </nav>
-            <h1 class="page-title">Checkout</h1>
+            <h1 class="page-title">{{ $t('checkout.checkout') }}</h1>
           </div>
 
           <!-- Step indicator -->
@@ -127,48 +126,48 @@ function onExpiryInput(e) {
 
           <!-- ─── Step 1: Shipping ──────────────────────────────── -->
           <div v-if="currentStep === 1" class="step-form">
-            <h2 class="form-section-title">Shipping information</h2>
+            <h2 class="form-section-title">{{ $t('checkout.shippingInfo') }}</h2>
 
             <div class="form-row form-row--2">
               <div class="field-wrap">
-                <label class="field-label">First name *</label>
+                <label class="field-label">{{ $t('checkout.firstName') }}</label>
                 <input v-model="shipping.firstName" class="field-input" placeholder="Ahmed" />
               </div>
               <div class="field-wrap">
-                <label class="field-label">Last name *</label>
+                <label class="field-label">{{ $t('checkout.lastName') }}</label>
                 <input v-model="shipping.lastName" class="field-input" placeholder="Al-Rashid" />
               </div>
             </div>
             <div class="form-row form-row--2">
               <div class="field-wrap">
-                <label class="field-label">Email address *</label>
+                <label class="field-label">{{ $t('checkout.email') }}</label>
                 <input v-model="shipping.email" type="email" class="field-input" placeholder="you@example.com" />
               </div>
               <div class="field-wrap">
-                <label class="field-label">Phone number</label>
+                <label class="field-label">{{ $t('checkout.phone') }}</label>
                 <input v-model="shipping.phone" class="field-input" placeholder="+966 50 000 0000" />
               </div>
             </div>
             <div class="field-wrap">
-              <label class="field-label">Street address *</label>
+              <label class="field-label">{{ $t('checkout.address') }}</label>
               <input v-model="shipping.address" class="field-input" placeholder="123 King Fahad Road, Apt 4B" />
             </div>
             <div class="form-row form-row--3">
               <div class="field-wrap">
-                <label class="field-label">City *</label>
+                <label class="field-label">{{ $t('checkout.city') }}</label>
                 <input v-model="shipping.city" class="field-input" placeholder="Riyadh" />
               </div>
               <div class="field-wrap">
-                <label class="field-label">State / Province</label>
+                <label class="field-label">{{ $t('checkout.state') }}</label>
                 <input v-model="shipping.state" class="field-input" placeholder="Riyadh Region" />
               </div>
               <div class="field-wrap">
-                <label class="field-label">ZIP / Postal code</label>
+                <label class="field-label">{{ $t('checkout.zip') }}</label>
                 <input v-model="shipping.zip" class="field-input" placeholder="11564" />
               </div>
             </div>
             <div class="field-wrap">
-              <label class="field-label">Country *</label>
+              <label class="field-label">{{ $t('checkout.country') }}</label>
               <select v-model="shipping.country" class="field-select">
                 <option v-for="c in countries" :key="c" :value="c">{{ c }}</option>
               </select>
@@ -180,7 +179,7 @@ function onExpiryInput(e) {
                 :disabled="!shippingValid()"
                 @click="nextStep"
               >
-                Continue to payment
+                {{ $t('checkout.continuePayment') }}
                 <v-icon size="16">mdi-arrow-right</v-icon>
               </button>
             </div>
@@ -188,14 +187,14 @@ function onExpiryInput(e) {
 
           <!-- ─── Step 2: Payment ───────────────────────────────── -->
           <div v-if="currentStep === 2" class="step-form">
-            <h2 class="form-section-title">Payment details</h2>
+            <h2 class="form-section-title">{{ $t('checkout.paymentDetails') }}</h2>
             <p class="form-section-sub">
               <v-icon size="14" style="color: var(--color-muted-light);">mdi-lock-outline</v-icon>
-              All transactions are encrypted and secure.
+              {{ $t('checkout.paymentSecure') }}
             </p>
 
             <div class="field-wrap">
-              <label class="field-label">Card number *</label>
+              <label class="field-label">{{ $t('checkout.cardNumber') }}</label>
               <div class="card-input-wrap">
                 <input
                   :value="payment.cardNumber"
@@ -208,12 +207,12 @@ function onExpiryInput(e) {
               </div>
             </div>
             <div class="field-wrap">
-              <label class="field-label">Name on card *</label>
+              <label class="field-label">{{ $t('checkout.nameOnCard') }}</label>
               <input v-model="payment.cardName" class="field-input" placeholder="Ahmed Al-Rashid" />
             </div>
             <div class="form-row form-row--2">
               <div class="field-wrap">
-                <label class="field-label">Expiry date *</label>
+                <label class="field-label">{{ $t('checkout.expiry') }}</label>
                 <input
                   :value="payment.expiry"
                   @input="onExpiryInput"
@@ -223,7 +222,7 @@ function onExpiryInput(e) {
                 />
               </div>
               <div class="field-wrap">
-                <label class="field-label">CVV *</label>
+                <label class="field-label">{{ $t('checkout.cvv') }}</label>
                 <input v-model="payment.cvv" type="password" class="field-input" placeholder="•••" maxlength="4" />
               </div>
             </div>
@@ -231,14 +230,14 @@ function onExpiryInput(e) {
             <div class="form-actions">
               <button class="btn-ghost" @click="currentStep = 1">
                 <v-icon size="16">mdi-arrow-left</v-icon>
-                Back
+                {{ $t('checkout.back') }}
               </button>
               <button
                 class="btn-primary"
                 :disabled="!paymentValid()"
                 @click="nextStep"
               >
-                Review order
+                {{ $t('checkout.reviewOrder') }}
                 <v-icon size="16">mdi-arrow-right</v-icon>
               </button>
             </div>
@@ -246,12 +245,12 @@ function onExpiryInput(e) {
 
           <!-- ─── Step 3: Confirm ───────────────────────────────── -->
           <div v-if="currentStep === 3" class="step-form">
-            <h2 class="form-section-title">Review your order</h2>
+            <h2 class="form-section-title">{{ $t('checkout.reviewYourOrder') }}</h2>
 
             <div class="review-block">
               <div class="review-block-head">
-                <span class="review-block-label">Shipping to</span>
-                <button class="review-edit" @click="currentStep = 1">Edit</button>
+                <span class="review-block-label">{{ $t('checkout.shippingTo') }}</span>
+                <button class="review-edit" @click="currentStep = 1">{{ $t('checkout.edit') }}</button>
               </div>
               <p class="review-content">
                 {{ shipping.firstName }} {{ shipping.lastName }}<br />
@@ -261,8 +260,8 @@ function onExpiryInput(e) {
 
             <div class="review-block">
               <div class="review-block-head">
-                <span class="review-block-label">Payment</span>
-                <button class="review-edit" @click="currentStep = 2">Edit</button>
+                <span class="review-block-label">{{ $t('checkout.payment') }}</span>
+                <button class="review-edit" @click="currentStep = 2">{{ $t('checkout.edit') }}</button>
               </div>
               <p class="review-content">
                 **** **** **** {{ payment.cardNumber.replace(/\s/g, '').slice(-4) }}
@@ -272,7 +271,7 @@ function onExpiryInput(e) {
 
             <div class="review-block">
               <div class="review-block-head">
-                <span class="review-block-label">Items ({{ cartStore.itemCount }})</span>
+                <span class="review-block-label">{{ $t('checkout.itemsCount', { count: cartStore.itemCount }) }}</span>
               </div>
               <div class="review-items">
                 <div v-for="item in cartStore.items" :key="item.id" class="review-item">
@@ -286,11 +285,11 @@ function onExpiryInput(e) {
             <div class="form-actions">
               <button class="btn-ghost" @click="currentStep = 2">
                 <v-icon size="16">mdi-arrow-left</v-icon>
-                Back
+                {{ $t('checkout.back') }}
               </button>
               <button class="btn-place" @click="placeOrder">
                 <v-icon size="18">mdi-check-circle-outline</v-icon>
-                Place order — ${{ total.toFixed(2) }}
+                {{ $t('checkout.placeOrder', { amount: total.toFixed(2) }) }}
               </button>
             </div>
           </div>
@@ -298,7 +297,7 @@ function onExpiryInput(e) {
 
         <!-- ─── Right: summary ───────────────────────────────────── -->
         <aside class="checkout-summary">
-          <h3 class="summary-title">Order summary</h3>
+          <h3 class="summary-title">{{ $t('checkout.orderSummary') }}</h3>
 
           <div class="summary-items">
             <div v-for="item in cartStore.items" :key="item.id" class="s-item">
@@ -314,17 +313,17 @@ function onExpiryInput(e) {
 
           <div class="summary-lines">
             <div class="summary-line">
-              <span>Subtotal</span>
+              <span>{{ $t('checkout.subtotal') }}</span>
               <span>${{ subtotal.toFixed(2) }}</span>
             </div>
             <div class="summary-line">
-              <span>Shipping</span>
-              <span v-if="shippingCost === 0" class="free-label">Free</span>
+              <span>{{ $t('checkout.shipping') }}</span>
+              <span v-if="shippingCost === 0" class="free-label">{{ $t('checkout.free') }}</span>
               <span v-else>${{ shippingCost.toFixed(2) }}</span>
             </div>
             <div class="summary-divider" style="margin: 4px 0;"></div>
             <div class="summary-line summary-line--total">
-              <span>Total</span>
+              <span>{{ $t('checkout.total') }}</span>
               <span>${{ total.toFixed(2) }}</span>
             </div>
           </div>
@@ -418,8 +417,8 @@ function onExpiryInput(e) {
 .step-connector {
   position: absolute;
   top: 18px;
-  left: 18px;
-  right: 18px;
+  inset-inline-start: 18px;
+  inset-inline-end: 18px;
   height: 2px;
   background: var(--color-divider);
   z-index: 0;
@@ -511,8 +510,14 @@ function onExpiryInput(e) {
 .field-select { appearance: none; cursor: pointer; }
 
 .card-input-wrap { position: relative; }
-.card-input-wrap .field-input { padding-right: 42px; }
-.card-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--color-muted-light); }
+.card-input-wrap .field-input { padding-inline-end: 42px; }
+.card-icon {
+  position: absolute;
+  inset-inline-end: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-muted-light);
+}
 
 .form-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
 

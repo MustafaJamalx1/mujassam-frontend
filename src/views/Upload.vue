@@ -1,45 +1,54 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 
 const router = useRouter()
+const { t } = useI18n()
+
 const currentStep = ref(1)
 const isDragging = ref(false)
 const uploadedFile = ref(null)
 const uploadProgress = ref(0)
 const isUploading = ref(false)
 
-// Step 2 config
 const selectedMaterial = ref('PLA')
 const selectedColor = ref('Natural White')
 const selectedFinish = ref('Standard')
 const quantity = ref(1)
 
-// Step 3 quote
 const quoteGenerated = ref(false)
 const estimatedPrice = ref(0)
 const estimatedDays = ref(3)
 
-const materials = [
-  { id: 'PLA',    label: 'PLA',    note: 'Most popular. Eco-friendly, great detail.',  price: 0 },
-  { id: 'PETG',   label: 'PETG',   note: 'Stronger than PLA. Slight flex, heat-resistant.', price: 1.5 },
-  { id: 'ABS',    label: 'ABS',    note: 'Industrial strength. Post-processing friendly.', price: 3 },
-  { id: 'Resin',  label: 'Resin',  note: 'Ultra-fine detail. Best for small figurines.', price: 6 },
-]
+const materialKeys = ['PLA', 'PETG', 'ABS', 'Resin']
+const materialPrices = { PLA: 0, PETG: 1.5, ABS: 3, Resin: 6 }
 
-const colors = ['Natural White', 'Matte Black', 'Burnt Orange', 'Slate Grey', 'Forest Green', 'Ivory Cream']
-const finishes = [
-  { id: 'Standard',    label: 'Standard',    note: 'Visible layer lines' },
-  { id: 'Sanded',      label: 'Sanded',      note: '+$4 — Smooth surface' },
-  { id: 'Primed',      label: 'Primed',      note: '+$8 — Ready to paint' },
-]
+const materials = computed(() =>
+  materialKeys.map(id => ({
+    id,
+    label: id,
+    note: t(`upload.materialNotes.${id}`),
+    price: materialPrices[id],
+  }))
+)
 
-const selectedMaterialObj = computed(() => materials.find(m => m.id === selectedMaterial.value))
-const finishSurcharge = computed(() => {
-  if (selectedFinish.value === 'Sanded') return 4
-  if (selectedFinish.value === 'Primed') return 8
-  return 0
-})
+const colorKeys = ['Natural White', 'Matte Black', 'Burnt Orange', 'Slate Grey', 'Forest Green', 'Ivory Cream']
+const colors = computed(() => colorKeys.map(k => ({ key: k, label: t(`upload.colors.${k}`) })))
+
+const finishKeys = ['Standard', 'Sanded', 'Primed']
+const finishSurcharges = { Standard: 0, Sanded: 4, Primed: 8 }
+
+const finishes = computed(() =>
+  finishKeys.map(id => ({
+    id,
+    label: t(`upload.finishLabels.${id}`),
+    note: t(`upload.finishNotes.${id}`),
+  }))
+)
+
+const selectedMaterialObj = computed(() => materials.value.find(m => m.id === selectedMaterial.value))
+const finishSurcharge = computed(() => finishSurcharges[selectedFinish.value] || 0)
 
 const acceptedFormats = '.stl,.obj,.3mf,.step,.stp'
 
@@ -101,6 +110,12 @@ const fileSizeLabel = computed(() => {
 function addToCartAndRoute() {
   router.push('/cart')
 }
+
+const stepLabels = computed(() => [
+  t('upload.step1'),
+  t('upload.step2'),
+  t('upload.step3'),
+])
 </script>
 
 <template>
@@ -109,9 +124,9 @@ function addToCartAndRoute() {
 
       <!-- Page header -->
       <div class="page-head">
-        <span class="section-label">Custom order</span>
-        <h1 class="page-title">Upload your design</h1>
-        <p class="page-sub">Get a custom quote in three simple steps.</p>
+        <span class="section-label">{{ $t('upload.label') }}</span>
+        <h1 class="page-title">{{ $t('upload.title') }}</h1>
+        <p class="page-sub">{{ $t('upload.subtitle') }}</p>
       </div>
 
       <!-- Step indicator -->
@@ -130,9 +145,7 @@ function addToCartAndRoute() {
             <v-icon v-if="currentStep > n" size="14">mdi-check</v-icon>
             <span v-else>{{ n }}</span>
           </span>
-          <span class="step-dot-label">
-            {{ n === 1 ? 'Upload file' : n === 2 ? 'Configure' : 'Get quote' }}
-          </span>
+          <span class="step-dot-label">{{ stepLabels[n - 1] }}</span>
         </button>
         <div class="step-line"></div>
       </div>
@@ -153,11 +166,11 @@ function addToCartAndRoute() {
               <div class="drop-icon-wrap">
                 <v-icon size="40" style="color: var(--color-terracotta);">mdi-cloud-upload-outline</v-icon>
               </div>
-              <h3 class="drop-title">Drop your 3D file here</h3>
-              <p class="drop-sub">or click to browse — STL, OBJ, 3MF, STEP</p>
+              <h3 class="drop-title">{{ $t('upload.dropTitle') }}</h3>
+              <p class="drop-sub">{{ $t('upload.dropSub') }}</p>
               <label class="browse-btn">
                 <input type="file" :accept="acceptedFormats" @change="onDrop" class="sr-only" />
-                Choose file
+                {{ $t('upload.chooseFile') }}
               </label>
             </div>
 
@@ -176,7 +189,7 @@ function addToCartAndRoute() {
                 </div>
                 <span v-else class="file-ready">
                   <v-icon size="14" style="color:#27795B;">mdi-check-circle</v-icon>
-                  Ready
+                  {{ $t('upload.ready') }}
                 </span>
               </div>
               <button class="file-remove" @click="removeFile">
@@ -188,7 +201,7 @@ function addToCartAndRoute() {
           <!-- Supported formats -->
           <div class="formats-note">
             <v-icon size="14" style="color: var(--color-muted-light);">mdi-information-outline</v-icon>
-            Supported: STL, OBJ, 3MF, STEP / Max file size: 256 MB
+            {{ $t('upload.supported') }}
           </div>
         </div>
 
@@ -198,7 +211,7 @@ function addToCartAndRoute() {
             :disabled="!uploadedFile || isUploading"
             @click="currentStep = 2"
           >
-            Continue to configure
+            {{ $t('upload.continueConfig') }}
             <v-icon size="16">mdi-arrow-right</v-icon>
           </button>
         </div>
@@ -210,7 +223,7 @@ function addToCartAndRoute() {
 
           <!-- Material -->
           <div class="config-section">
-            <h3 class="config-title">Material</h3>
+            <h3 class="config-title">{{ $t('upload.material') }}</h3>
             <div class="material-cards">
               <button
                 v-for="mat in materials"
@@ -230,20 +243,20 @@ function addToCartAndRoute() {
 
           <!-- Color + Finish + Quantity -->
           <div class="config-section">
-            <h3 class="config-title">Color</h3>
+            <h3 class="config-title">{{ $t('upload.color') }}</h3>
             <div class="option-chips">
               <button
                 v-for="col in colors"
-                :key="col"
+                :key="col.key"
                 class="option-chip"
-                :class="{ 'option-chip--active': selectedColor === col }"
-                @click="selectedColor = col"
+                :class="{ 'option-chip--active': selectedColor === col.key }"
+                @click="selectedColor = col.key"
               >
-                {{ col }}
+                {{ col.label }}
               </button>
             </div>
 
-            <h3 class="config-title" style="margin-top: 28px;">Surface finish</h3>
+            <h3 class="config-title" style="margin-top: 28px;">{{ $t('upload.surfaceFinish') }}</h3>
             <div class="finish-cards">
               <button
                 v-for="fin in finishes"
@@ -257,7 +270,7 @@ function addToCartAndRoute() {
               </button>
             </div>
 
-            <h3 class="config-title" style="margin-top: 28px;">Quantity</h3>
+            <h3 class="config-title" style="margin-top: 28px;">{{ $t('upload.quantity') }}</h3>
             <div class="quantity-picker">
               <button class="qty-btn" @click="quantity = Math.max(1, quantity - 1)">
                 <v-icon size="16">mdi-minus</v-icon>
@@ -273,10 +286,10 @@ function addToCartAndRoute() {
         <div class="step-nav">
           <button class="btn-ghost" @click="currentStep = 1">
             <v-icon size="16">mdi-arrow-left</v-icon>
-            Back
+            {{ $t('upload.back') }}
           </button>
           <button class="btn-primary" @click="generateQuote">
-            Get my quote
+            {{ $t('upload.getQuote') }}
             <v-icon size="16">mdi-arrow-right</v-icon>
           </button>
         </div>
@@ -288,56 +301,54 @@ function addToCartAndRoute() {
           <div class="quote-card">
             <div class="quote-header">
               <v-icon size="28" style="color: var(--color-terracotta);">mdi-receipt-text-outline</v-icon>
-              <h2 class="quote-title">Your estimate</h2>
+              <h2 class="quote-title">{{ $t('upload.yourEstimate') }}</h2>
             </div>
 
             <div class="quote-lines">
               <div class="quote-line">
-                <span>File</span>
+                <span>{{ $t('upload.file') }}</span>
                 <span>{{ uploadedFile?.name }}</span>
               </div>
               <div class="quote-line">
-                <span>Material</span>
+                <span>{{ $t('upload.material') }}</span>
                 <span>{{ selectedMaterial }}</span>
               </div>
               <div class="quote-line">
-                <span>Color</span>
-                <span>{{ selectedColor }}</span>
+                <span>{{ $t('upload.color') }}</span>
+                <span>{{ $t(`upload.colors.${selectedColor}`) }}</span>
               </div>
               <div class="quote-line">
-                <span>Finish</span>
-                <span>{{ selectedFinish }}</span>
+                <span>{{ $t('upload.finish') }}</span>
+                <span>{{ $t(`upload.finishLabels.${selectedFinish}`) }}</span>
               </div>
               <div class="quote-line">
-                <span>Quantity</span>
+                <span>{{ $t('upload.quantity') }}</span>
                 <span>× {{ quantity }}</span>
               </div>
               <div class="quote-line quote-line--total">
-                <span>Total estimate</span>
+                <span>{{ $t('upload.totalEstimate') }}</span>
                 <span class="quote-price">${{ estimatedPrice }}</span>
               </div>
               <div class="quote-line">
-                <span>Estimated delivery</span>
-                <span>{{ estimatedDays }}–{{ estimatedDays + 2 }} business days</span>
+                <span>{{ $t('upload.estimatedDelivery') }}</span>
+                <span>{{ $t('upload.businessDays', { min: estimatedDays, max: estimatedDays + 2 }) }}</span>
               </div>
             </div>
 
-            <p class="quote-note">
-              This is a non-binding estimate. Final price confirmed after file review.
-            </p>
+            <p class="quote-note">{{ $t('upload.quoteNote') }}</p>
           </div>
 
           <div class="quote-actions">
             <button class="btn-primary" @click="addToCartAndRoute">
               <v-icon size="18">mdi-cart-plus</v-icon>
-              Add to cart
+              {{ $t('upload.addToCart') }}
             </button>
             <button class="btn-ghost" @click="currentStep = 2">
               <v-icon size="16">mdi-arrow-left</v-icon>
-              Adjust options
+              {{ $t('upload.adjustOptions') }}
             </button>
             <a href="mailto:hello@mujassam.com" class="contact-link">
-              Have questions? Email us
+              {{ $t('upload.contactUs') }}
             </a>
           </div>
         </div>
@@ -391,8 +402,8 @@ function addToCartAndRoute() {
 .step-line {
   position: absolute;
   top: 18px;
-  left: 18px;
-  right: 18px;
+  inset-inline-start: 18px;
+  inset-inline-end: 18px;
   height: 2px;
   background: var(--color-divider);
   z-index: 0;
@@ -608,7 +619,7 @@ function addToCartAndRoute() {
   border: 1.5px solid var(--color-divider);
   border-radius: var(--radius-md);
   background: #fff;
-  text-align: left;
+  text-align: start;
   cursor: pointer;
   transition: border-color var(--duration-fast), background var(--duration-fast);
 }

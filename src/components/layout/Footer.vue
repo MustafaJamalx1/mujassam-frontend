@@ -1,11 +1,15 @@
 <script setup>
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 const year = new Date().getFullYear()
 
-const quickLinks = [
-  { label: 'Browse Products', to: '/products' },
-  { label: 'Upload a Design', to: '/upload' },
-  { label: 'Your Cart', to: '/cart' },
-]
+const quickLinks = computed(() => [
+  { label: t('footer.browseProducts'), to: '/products' },
+  { label: t('footer.uploadDesign'), to: '/upload' },
+  { label: t('footer.yourCart'), to: '/cart' },
+])
 
 const materialLinks = [
   { label: 'PLA', href: '#' },
@@ -35,10 +39,7 @@ const socials = [
             </span>
             <span class="footer-logo-text">Mujassam</span>
           </div>
-          <p class="footer-tagline">
-            Turning ideas into tangible objects — one layer at a time.
-            Premium 3D printing for makers, designers, and dreamers.
-          </p>
+          <p class="footer-tagline">{{ $t('footer.tagline') }}</p>
           <div class="footer-socials">
             <a
               v-for="s in socials"
@@ -54,7 +55,7 @@ const socials = [
 
         <!-- Quick Links -->
         <div class="footer-col">
-          <h4 class="footer-heading">Quick Links</h4>
+          <h4 class="footer-heading">{{ $t('footer.quickLinks') }}</h4>
           <ul class="footer-list">
             <li v-for="link in quickLinks" :key="link.label">
               <router-link :to="link.to" class="footer-link">{{ link.label }}</router-link>
@@ -64,7 +65,7 @@ const socials = [
 
         <!-- Materials -->
         <div class="footer-col">
-          <h4 class="footer-heading">Materials</h4>
+          <h4 class="footer-heading">{{ $t('footer.materials') }}</h4>
           <ul class="footer-list">
             <li v-for="m in materialLinks" :key="m.label">
               <a :href="m.href" class="footer-link">{{ m.label }}</a>
@@ -74,7 +75,7 @@ const socials = [
 
         <!-- Contact -->
         <div class="footer-col">
-          <h4 class="footer-heading">Get in Touch</h4>
+          <h4 class="footer-heading">{{ $t('footer.getInTouch') }}</h4>
           <ul class="footer-list footer-list--contact">
             <li>
               <v-icon size="16" class="footer-contact-icon">mdi-email-outline</v-icon>
@@ -82,7 +83,7 @@ const socials = [
             </li>
             <li>
               <v-icon size="16" class="footer-contact-icon">mdi-map-marker-outline</v-icon>
-              <span class="footer-link footer-link--plain">Riyadh, Saudi Arabia</span>
+              <span class="footer-link footer-link--plain">{{ $t('footer.location') }}</span>
             </li>
           </ul>
         </div>
@@ -93,10 +94,10 @@ const socials = [
     <!-- Bottom bar -->
     <div class="footer-bottom">
       <div class="footer-bottom-inner">
-        <span class="footer-copy">© {{ year }} Mujassam. All rights reserved.</span>
+        <span class="footer-copy">{{ $t('footer.copyright', { year }) }}</span>
         <div class="footer-legal">
-          <a href="#" class="footer-legal-link">Privacy Policy</a>
-          <a href="#" class="footer-legal-link">Terms of Service</a>
+          <a href="#" class="footer-legal-link">{{ $t('footer.privacyPolicy') }}</a>
+          <a href="#" class="footer-legal-link">{{ $t('footer.termsOfService') }}</a>
         </div>
       </div>
     </div>

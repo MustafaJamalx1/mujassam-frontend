@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useCartStore } from '@/stores/cart'
 import { useUserStore } from '@/stores/user'
 
@@ -8,18 +9,24 @@ const router = useRouter()
 const route = useRoute()
 const cartStore = useCartStore()
 const userStore = useUserStore()
+const { t, locale } = useI18n()
 
 const mobileMenuOpen = ref(false)
 const searchOpen = ref(false)
 const searchQuery = ref('')
 
-const navLinks = [
-  { label: 'Products', to: '/products' },
-  { label: 'Upload Design', to: '/upload' },
-]
+const navLinks = computed(() => [
+  { label: t('nav.products'), to: '/products' },
+  { label: t('nav.uploadDesign'), to: '/upload' },
+])
 
 const cartCount = computed(() => cartStore.itemCount)
 const isActive = (path) => route.path.startsWith(path)
+const isArabic = computed(() => locale.value === 'ar')
+
+function toggleLocale() {
+  locale.value = locale.value === 'en' ? 'ar' : 'en'
+}
 
 function submitSearch() {
   if (searchQuery.value.trim()) {
@@ -67,7 +74,7 @@ function closeSearch() {
             <input
               v-model="searchQuery"
               autofocus
-              placeholder="Search products…"
+              :placeholder="$t('nav.search')"
               class="search-input"
               @keydown.enter="submitSearch"
               @keydown.escape="closeSearch"
@@ -78,26 +85,36 @@ function closeSearch() {
           </div>
         </Transition>
 
-        <button class="icon-btn" :class="{ 'icon-btn--active': searchOpen }" @click="searchOpen = !searchOpen" aria-label="Search">
+        <button class="icon-btn" :class="{ 'icon-btn--active': searchOpen }" @click="searchOpen = !searchOpen" :aria-label="$t('nav.search')">
           <v-icon size="20">mdi-magnify</v-icon>
         </button>
 
         <!-- Cart -->
-        <router-link to="/cart" class="icon-btn cart-btn" aria-label="Cart">
+        <router-link to="/cart" class="icon-btn cart-btn" :aria-label="$t('nav.cart')">
           <v-icon size="20">mdi-shopping-outline</v-icon>
           <span v-if="cartCount > 0" class="cart-badge">{{ cartCount }}</span>
         </router-link>
 
         <!-- Account -->
-        <button class="icon-btn" aria-label="Account">
+        <button class="icon-btn" :aria-label="$t('nav.account')">
           <v-icon size="20">mdi-account-outline</v-icon>
+        </button>
+
+        <!-- Language Toggle -->
+        <button
+          class="lang-btn"
+          @click="toggleLocale"
+          :aria-label="isArabic ? 'Switch to English' : 'التبديل إلى العربية'"
+          :title="isArabic ? 'English' : 'العربية'"
+        >
+          <span class="lang-btn-text">{{ isArabic ? 'EN' : 'AR' }}</span>
         </button>
 
         <!-- Mobile Hamburger -->
         <button
           class="icon-btn hamburger d-md-none"
           @click="mobileMenuOpen = !mobileMenuOpen"
-          :aria-label="mobileMenuOpen ? 'Close menu' : 'Open menu'"
+          :aria-label="mobileMenuOpen ? $t('nav.closeMenu') : $t('nav.openMenu')"
         >
           <v-icon size="22">{{ mobileMenuOpen ? 'mdi-close' : 'mdi-menu' }}</v-icon>
         </button>
@@ -119,7 +136,7 @@ function closeSearch() {
             {{ link.label }}
           </router-link>
           <router-link to="/cart" class="mobile-nav-link" @click="mobileMenuOpen = false">
-            Cart
+            {{ $t('nav.cart') }}
             <span v-if="cartCount > 0" class="mobile-cart-count">({{ cartCount }})</span>
           </router-link>
         </nav>
@@ -184,7 +201,7 @@ function closeSearch() {
   display: none;
   align-items: center;
   gap: 4px;
-  margin-left: 16px;
+  margin-inline-start: 16px;
 }
 @media (min-width: 768px) {
   .desktop-nav { display: flex; }
@@ -215,7 +232,7 @@ function closeSearch() {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 
 .icon-btn {
@@ -244,7 +261,7 @@ function closeSearch() {
 .cart-badge {
   position: absolute;
   top: 4px;
-  right: 4px;
+  inset-inline-end: 4px;
   min-width: 16px;
   height: 16px;
   padding: 0 4px;
@@ -255,6 +272,37 @@ function closeSearch() {
   font-weight: 700;
   line-height: 16px;
   text-align: center;
+}
+
+/* Language button */
+.lang-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  padding: 0 10px;
+  border: 1.5px solid var(--color-divider);
+  background: transparent;
+  border-radius: 8px;
+  color: var(--color-muted);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  transition: color var(--duration-fast) var(--ease-out),
+              border-color var(--duration-fast) var(--ease-out),
+              background var(--duration-fast) var(--ease-out);
+}
+.lang-btn:hover {
+  color: var(--color-terracotta);
+  border-color: var(--color-terracotta);
+  background: rgba(184, 92, 56, 0.06);
+}
+.lang-btn-text {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 
 /* Search bar */

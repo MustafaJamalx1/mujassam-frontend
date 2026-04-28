@@ -1,6 +1,18 @@
 <script setup>
+import { watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useLocale } from 'vuetify'
 import Header from '@/components/layout/Header.vue'
 import Footer from '@/components/layout/Footer.vue'
+import { applyLocaleToDocument } from '@/i18n'
+
+const { locale } = useI18n()
+const vuetifyLocale = useLocale()
+
+watch(locale, (newLocale) => {
+  applyLocaleToDocument(newLocale)
+  vuetifyLocale.current.value = newLocale
+}, { immediate: false })
 </script>
 
 <template>
